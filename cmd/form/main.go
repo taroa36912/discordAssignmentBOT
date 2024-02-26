@@ -15,7 +15,7 @@ func NewFormCmd() FormCmd {
 
 func (n FormCmd) Info() *discordgo.ApplicationCommand {
 	return &discordgo.ApplicationCommand{
-		Name:        "delete",
+		Name:        "form",
 		Description: "先頭から指定した数のメッセージを削除します。",
 		Options: []*discordgo.ApplicationCommandOption{
 			{
