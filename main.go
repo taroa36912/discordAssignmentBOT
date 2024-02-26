@@ -8,6 +8,8 @@ import (
 	"os"
 	"os/signal"
 	"formbot/send"
+	"formbot/cmd"
+	"formbot/cmd/form"
 )
 
 const (
@@ -41,11 +43,24 @@ func main() {
 	if err != nil {
 		fmt.Println(err)
 	}
+
+	cmds := cmd.NewExec()
+	formCmd := form.NewFormCmd()
+	cmds.Add(formCmd)
+
+	cmdHandler := cmds.Activate(discord)
+	defer cmdHandler.Deactivate()
+
+	//ここから終了コマンド
 	defer discord.Close()
 	stop := make(chan os.Signal, 1)
 	signal.Notify(stop, os.Interrupt)
 	log.Println("Press Ctrl+C to exit")
 	<-stop
+	fmt.Println("Removing commands...")
+	// コマンドを削除
+    cmdHandler.Deactivate()
+
 }
 
 func loadEnv() {
