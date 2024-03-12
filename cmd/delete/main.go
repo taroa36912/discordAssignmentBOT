@@ -1,4 +1,4 @@
-package form
+package delete
 
 import (
 	"fmt"
@@ -6,29 +6,29 @@ import (
 	"log"
 )
 
-type FormCmd struct {
+type DeleteCmd struct {
 }
 
-func NewFormCmd() FormCmd {
-	return FormCmd{}
+func NewDeleteCmd() DeleteCmd {
+	return DeleteCmd{}
 }
 
-func (n FormCmd) Info() *discordgo.ApplicationCommand {
+func (n DeleteCmd) Info() *discordgo.ApplicationCommand {
 	return &discordgo.ApplicationCommand{
-		Name:        "form",
-		Description: "このチャンネルに，このチャンネルの課題の締め切りを通知する設定を行います.",
+		Name:        "delete",
+		Description: "先頭から指定した数のメッセージを削除します。",
 		Options: []*discordgo.ApplicationCommandOption{
 			{
 				Type:        discordgo.ApplicationCommandOptionInteger,
 				Name:        "count",
-				Description: "通知する週",
+				Description: "削除するメッセージの数",
 				Required:    true,
 			},
 		},
 	}
 }
 
-func (n FormCmd) Handle(
+func (n DeleteCmd) Handle(
 	s *discordgo.Session,
 	i *discordgo.InteractionCreate,
 ) {

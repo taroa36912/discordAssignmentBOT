@@ -9,6 +9,8 @@ import (
 	"os/signal"
 	"formbot/send"
 	"formbot/cmd"
+	"formbot/cmd/delete"
+	"formbot/cmd/nox"
 	"formbot/cmd/form"
 )
 
@@ -47,6 +49,10 @@ func main() {
 	cmds := cmd.NewExec()
 	formCmd := form.NewFormCmd()
 	cmds.Add(formCmd)
+	deleteCmd := delete.NewDeleteCmd()
+	cmds.Add(deleteCmd)
+	noxCmd := nox.NewNoxCmd()
+	cmds.Add(noxCmd)
 
 	cmdHandler := cmds.Activate(discord)
 	defer cmdHandler.Deactivate()
