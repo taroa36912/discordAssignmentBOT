@@ -17,7 +17,7 @@ import (
 const (
 	EnvDiscordToken = "discord_token"
 	EnvClientId     = "client_id"
-	EnvFormChannelId = "form_channel_id"
+
 )
 
 func main() {

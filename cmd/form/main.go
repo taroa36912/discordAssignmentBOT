@@ -2,6 +2,7 @@ package form
 
 import (
 	"fmt"
+	"formbot/send/send_e"
 	"github.com/bwmarrin/discordgo"
 	"log"
 )
@@ -20,9 +21,24 @@ func (n FormCmd) Info() *discordgo.ApplicationCommand {
 		Options: []*discordgo.ApplicationCommandOption{
 			{
 				Type:        discordgo.ApplicationCommandOptionInteger,
-				Name:        "count",
-				Description: "通知する週",
+				Name:        "hour",
+				Description: "通知する時間(時)",
 				Required:    true,
+			},
+			{
+				Type:        discordgo.ApplicationCommandOptionString,
+				Name:        "day",
+				Description: "通知する曜日",
+				Required:    true,
+				Choices: []*discordgo.ApplicationCommandOptionChoice{
+					{Name: "日曜日", Value: "Sunday"},
+					{Name: "月曜日", Value: "Monday"},
+					{Name: "火曜日", Value: "Tuesday"},
+					{Name: "水曜日", Value: "Wednesday"},
+					{Name: "木曜日", Value: "Thursday"},
+					{Name: "金曜日", Value: "Friday"},
+					{Name: "土曜日", Value: "Saturday"},
+				},
 			},
 		},
 	}
@@ -33,27 +49,17 @@ func (n FormCmd) Handle(
 	i *discordgo.InteractionCreate,
 ) {
 	opts := i.ApplicationCommandData().Options
-	if len(opts) != 1 {
+	if len(opts) != 2 {
 		log.Printf("invalid options: %#v", opts)
 		return
 	}
 	count := opts[0].IntValue()
-	if count < 1 {
+	day := opts[1].StringValue()
+	if count < 0 || 23 < count {
 		if err := s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
 			Type: discordgo.InteractionResponseChannelMessageWithSource,
 			Data: &discordgo.InteractionResponseData{
-				Content: "件数が無効です。",
-				Flags:   discordgo.MessageFlagsEphemeral,
-			},
-		}); err != nil {
-			log.Printf("failed to respond, err: %v", err)
-		}
-		return
-	} else if count > 30 {
-		if err := s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
-			Type: discordgo.InteractionResponseChannelMessageWithSource,
-			Data: &discordgo.InteractionResponseData{
-				Content: "削除件数が多すぎます。30件以下にしてください。",
+				Content: "時間が無効です. 0~23の整数で選択してください",
 				Flags:   discordgo.MessageFlagsEphemeral,
 			},
 		}); err != nil {
@@ -74,42 +80,30 @@ func (n FormCmd) Handle(
 
 	// create follow-up message
 	followUp := discordgo.WebhookParams{
-		Content: "削除中...",
+		Content: "送信中...",
 		Flags:   discordgo.MessageFlagsEphemeral,
 	}
+
 	followUpMsg, err := s.FollowupMessageCreate(i.Interaction, true, &followUp)
 	if err != nil {
 		log.Printf("failed to send follow-up message, err: %v", err)
 		return
 	}
 
-	// delete messages
-	channel, err := s.Channel(i.ChannelID)
-	if err != nil {
-		return
-	}
-	messages, err := s.ChannelMessages(
-		channel.ID, int(count), "", "", "")
-	if err != nil {
-		log.Printf("failed to get messages, err: %v", err)
-		return
-	}
+	// dayオブジェクトを使った処理の関数
+	result := fmt.Sprintf("%d : %s", count, day)
+	send.SendMessage(s, i.ChannelID, result)
 
-	mesIDs := make([]string, 0, len(messages))
-	for i := range messages {
-		mesIDs = append(mesIDs, messages[i].ID)
-	}
 
-	if err := s.ChannelMessagesBulkDelete(channel.ID, mesIDs); err != nil {
-		log.Printf("failed to delete messages, err: %v", err)
-	}
-
-	finishFollowUpStr := fmt.Sprintf("%d件のメッセージを削除しました。", len(mesIDs))
+	finishFollowUpStr := "メッセージが送信されました."
 	finishFollowUp := discordgo.WebhookEdit{
 		Content: &finishFollowUpStr,
 	}
+
 	if _, err := s.FollowupMessageEdit(i.Interaction, followUpMsg.ID, &finishFollowUp); err != nil {
 		log.Printf("failed to edit follow-up message, err: %v", err)
 		return
 	}
+
+	// Now you can proceed with the rest of your code, utilizing the 'count' and 'day' variables.
 }
