@@ -168,12 +168,12 @@ func handleSubCommand(
 	// サブコマンドに応じて処理を振り分け
 	switch subCommand {
 	case "view":
-		subview.HandleViewCommand(s, i, options)
+		sub.HandleViewCommand(s, i, options)
 	case "add":
-		subadd.HandleAddCommand(s, i, options)
+		sub.HandleAddCommand(s, i, options)
 	case "update":
-		subupdate.HandleUpdateCommand(s, i, options)
+		sub.HandleUpdateCommand(s, i, options)
 	case "delete":
-		subdelete.HandleDeleteCommand(s, i, options)
+		sub.HandleDeleteCommand(s, i, options)
 	}
 }

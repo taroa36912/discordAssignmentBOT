@@ -1,4 +1,4 @@
-package subadd
+package sub
 
 import (
 	"fmt"

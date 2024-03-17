@@ -1,4 +1,4 @@
-package subdelete
+package sub
 
 import (
 	"fmt"
@@ -8,7 +8,7 @@ import (
 	"log"
 )
 
-func handleDeleteCommand(
+func HandleViewCommand(
 	s *discordgo.Session,
 	i *discordgo.InteractionCreate,
 	options []*discordgo.ApplicationCommandInteractionDataOption,

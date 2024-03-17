@@ -1,15 +1,14 @@
-package subupdate
+package sub
 
 import (
 	"fmt"
 	"formbot/send/send_e"
 	"formbot/cmd/form/subform/function"
 	"github.com/bwmarrin/discordgo"
-	"formbot/cmd/form/subform"
 	"log"
 )
 
-func HandleUpdateCommand(
+func handleDeleteCommand(
 	s *discordgo.Session,
 	i *discordgo.InteractionCreate,
 	options []*discordgo.ApplicationCommandInteractionDataOption,
