@@ -7,7 +7,7 @@ import (
 	"log"
 	"os"
 	"os/signal"
-	"formbot/send"
+	"formbot/event/send"
 	"formbot/cmd"
 	"formbot/cmd/delete"
 	"formbot/cmd/nox"

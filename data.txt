@@ -1,1 +1,1 @@
-1218889102288486410, ChannelName, 20, Wednesday
+1218889102288486410, formbot, 10, Tuesday

@@ -2,8 +2,7 @@ package sub
 
 import (
 	"fmt"
-	"formbot/send/send_e"
-	"formbot/cmd/form/subform/function"
+	"formbot/function"
 	"github.com/bwmarrin/discordgo"
 	"log"
 )
@@ -34,5 +33,5 @@ func HandleDeleteCommand(
 	}
 
 	result := fmt.Sprintf("毎週%s曜日の%d時リマインドを通知します.", dayJ, hour)
-	send.SendMessage(s, i.ChannelID, result)
+	subfunc.SendMessage(s, i.ChannelID, result)
 }

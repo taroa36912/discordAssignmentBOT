@@ -2,7 +2,7 @@ package send
 
 import (
 	"fmt"
-	"formbot/send/send_e"
+	"formbot/function"
 	"github.com/bwmarrin/discordgo"
 	"os"
 )
@@ -17,6 +17,6 @@ func OnMessageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 	fmt.Printf("%20s %20s(%20s) > %s\n", m.ChannelID, u.Username, u.ID, m.Content)
 	// 個々の部分を書き換える
 	if u.ID != clientId {
-		send.SendReply(s, m.ChannelID,"ok", m.Reference())
+		subfunc.SendReply(s, m.ChannelID,"ok", m.Reference())
 	}
 }

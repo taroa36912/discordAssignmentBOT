@@ -5,15 +5,10 @@ import (
 	"os"
 )
 
-const EnvDataPath = "data_path"
-
 func WriteToDataFile(channelID, channelName, time, day string) error {
-	// ファイルの相対パスを指定します
-	dataPath := os.Getenv(EnvDataPath)
-
 	// OpenFile関数でファイルを開きます。第二引数にos.O_APPEND|os.O_WRONLY|os.O_CREATEを指定することで、
 	// 書き込み専用で、ファイルが存在しない場合は新しく作成し、ファイルの末尾に追記するように設定しています。
-	file, err := os.OpenFile(dataPath, os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0644)
+	file, err := os.OpenFile("data.txt", os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0644)
 	if err != nil {
 		return fmt.Errorf("failed to open data file: %v", err)
 	}

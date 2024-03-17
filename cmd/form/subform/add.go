@@ -2,7 +2,7 @@ package sub
 
 import (
 	"fmt"
-	"formbot/cmd/form/subform/function"
+	"formbot/function"
 	"github.com/bwmarrin/discordgo"
 	"log"
 )
@@ -19,7 +19,14 @@ func HandleAddCommand(
 	}
 
 	channelID := i.ChannelID
-	channelName := "ChannelName"
+	// コマンドが投下されたチャンネルのチャンネル名を取得
+	channel, err := s.Channel(i.ChannelID)
+	if err != nil {
+    	log.Printf("failed to get channel information: %v", err)
+    	return
+	}
+	channelName := channel.Name
+
 	hour := options[0].IntValue()
 	day := options[1].StringValue()
 

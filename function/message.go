@@ -1,4 +1,4 @@
-package send
+package subfunc
 
 import (
 	"github.com/bwmarrin/discordgo"
