@@ -1,8 +1,9 @@
-package add
+package subadd
 
 import (
 	"fmt"
 	"formbot/send/send_e"
+	"formbot/cmd/form/subform/function"
 	"github.com/bwmarrin/discordgo"
 	"log"
 )
@@ -18,14 +19,14 @@ func HandleAddCommand(
 	day := options[1].StringValue()
 
 	// ファイルへの書き込み
-	err := form.WriteToDataFile(channelID, channelName, fmt.Sprintf("%d", hour), day)
+	err := subfunc.WriteToDataFile(channelID, channelName, fmt.Sprintf("%d", hour), day)
 	if err != nil {
 		log.Printf("failed to write data to file: %v", err)
 		return
 	}
 
 	// アラームセット完了報告
-	dayJ, err := form.WeekEtoJ(day)
+	dayJ, err := subfunc.WeekEtoJ(day)
 	if err != nil {
 		log.Printf("failed to convert day to Japanese: %v", err)
 		return
