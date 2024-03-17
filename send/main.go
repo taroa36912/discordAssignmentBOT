@@ -15,8 +15,8 @@ func OnMessageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 	clientId := os.Getenv(EnvClientId)
 	u := m.Author
 	fmt.Printf("%20s %20s(%20s) > %s\n", m.ChannelID, u.Username, u.ID, m.Content)
+	// 個々の部分を書き換える
 	if u.ID != clientId {
-		send.SendMessage(s, m.ChannelID, u.Mention()+"ok1")
-		send.SendReply(s, m.ChannelID,"ok2", m.Reference())
+		send.SendReply(s, m.ChannelID,"ok", m.Reference())
 	}
 }

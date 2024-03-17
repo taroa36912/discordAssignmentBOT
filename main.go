@@ -38,6 +38,7 @@ func main() {
 		fmt.Println("failed to login")
 		fmt.Println(err)
 	}
+	
 	//イベントハンドラを追加
 	discord.AddHandler(send.OnMessageCreate)
 	err = discord.Open()
