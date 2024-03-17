@@ -2,11 +2,10 @@ package subfunc
 
 import (
 	"fmt"
-	"github.com/bwmarrin/discordgo"
-	"formbot/cmd/form/subform"
-	"log"
 	"os"
 )
+
+const EnvDataPath = "data_path"
 
 func WriteToDataFile(channelID, channelName, time, day string) error {
 	dataPath := os.Getenv(EnvDataPath)

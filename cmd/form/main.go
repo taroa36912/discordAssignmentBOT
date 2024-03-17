@@ -1,7 +1,6 @@
 package form
 
 import (
-	"fmt"
 	"github.com/bwmarrin/discordgo"
 	"formbot/cmd/form/subform"
 	"log"
