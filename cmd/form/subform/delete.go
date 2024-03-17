@@ -8,7 +8,8 @@ import (
 	"log"
 )
 
-func handleDeleteCommand(
+func HandleDeleteCommand(
+	
 	s *discordgo.Session,
 	i *discordgo.InteractionCreate,
 	options []*discordgo.ApplicationCommandInteractionDataOption,

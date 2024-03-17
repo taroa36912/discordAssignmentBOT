@@ -151,12 +151,28 @@ func (n FormCmd) Handle(
 
 	// サブコマンドに応じて処理を振り分け
 	subCommand := opts[0].Name
+	options := opts[0].Options
+
+
+	// 処理を始める前の手続き
+	if err := s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
+		Type: discordgo.InteractionResponseDeferredChannelMessageWithSource,
+		Data: &discordgo.InteractionResponseData{
+			Flags: discordgo.MessageFlagsEphemeral,
+		},
+	}); err != nil {
+		log.Printf("failed to do interaction response, err: %v", err)
+		return
+	}
+
+	// それぞれのサブコマンド内での処理を行う
 	switch subCommand {
 	case "view", "add", "update", "delete":
-		handleSubCommand(s, i, subCommand, opts[0].Options)
+		handleSubCommand(s, i, subCommand, options)
 	default:
 		log.Printf("invalid subcommand: %s", subCommand)
 	}
+
 }
 
 func handleSubCommand(
