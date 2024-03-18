@@ -26,25 +26,10 @@ func (n FormCmd) Info() *discordgo.ApplicationCommand {
 				Description: "課題期限通知時間の閲覧を行います.",
 				Options: []*discordgo.ApplicationCommandOption{
 					{
-						Type:        discordgo.ApplicationCommandOptionInteger,
-						Name:        "hour",
-						Description: "通知する時間(時)",
+						Type:        discordgo.ApplicationCommandOptionBoolean,
+						Name:        "YES",
+						Description: "閲覧する",
 						Required:    true,
-					},
-					{
-						Type:        discordgo.ApplicationCommandOptionString,
-						Name:        "day",
-						Description: "通知する曜日",
-						Required:    true,
-						Choices: []*discordgo.ApplicationCommandOptionChoice{
-							{Name: "日曜日", Value: "Sunday"},
-							{Name: "月曜日", Value: "Monday"},
-							{Name: "火曜日", Value: "Tuesday"},
-							{Name: "水曜日", Value: "Wednesday"},
-							{Name: "木曜日", Value: "Thursday"},
-							{Name: "金曜日", Value: "Friday"},
-							{Name: "土曜日", Value: "Saturday"},
-						},
 					},
 				},
 			},

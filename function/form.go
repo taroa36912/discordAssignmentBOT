@@ -1,9 +1,13 @@
 package subfunc
 
 import (
+	"log"
 	"fmt"
 	"os"
 	"bufio"
+	"time"
+	"strings"
+	"github.com/bwmarrin/discordgo"
 )
 
 func WriteToDataFile(str string) error {
@@ -61,6 +65,121 @@ func ReadDataFile() ([]string, error) {
 
 	return lines, nil
 }
+
+
+func CheckEachRow(s *discordgo.Session, e *discordgo.Ready, data string, current time.Time)(string, string){
+	// データを", "で分割
+	parts := strings.Split(data, ", ")
+
+	// データの長さで, weeklyか, onceかを判別
+	// 長さ5はweekly
+	if len(parts) == 5 {
+		// 各要素を変数に格納
+		channelID := parts[0]
+		title := parts[1]
+		hour := parts[2]
+		weekday := parts[3]
+		mention := parts[4]
+
+		currentHour := current.Hour()
+		currentWeekday := current.Weekday().String()
+
+		// 記録された時刻と曜日と現在の時刻と曜日が一致する場合にSendMessageを実行
+		if hour == fmt.Sprintf("%02d", currentHour) && weekday == currentWeekday {
+			if(mention == "everyone"){
+				sentence := fmt.Sprintf("@everyone\n```課題：%sの締め切りを通知します.\n```", title)
+				return channelID, sentence
+			}else if(mention == "me"){
+				sentence := fmt.Sprintf("```課題：%sの締め切りを通知します.\n```", title)
+				return channelID, sentence
+			}
+		}
+	}else if len(parts) == 7 { // 長さ7はonce
+		// 各要素を変数に格納
+		channelID := parts[0]
+		title := parts[1]
+		year := parts[2]
+		month := parts[3]
+		day := parts[4]
+		hour := parts[5]
+		mention := parts[6]
+
+		currentHour := current.Hour()
+		currentYear := current.Year()
+		currentMonth := int(current.Month())
+		currentDay := current.Day()
+
+		// 指定された年月日時が現在時刻と一致する場合にのみ処理を実行
+		if year == fmt.Sprintf("%d", currentYear) &&
+			month == fmt.Sprintf("%d", currentMonth) &&
+			day == fmt.Sprintf("%d", currentDay) &&
+			hour == fmt.Sprintf("%d", currentHour) {
+			if mention == "everyone" {
+				sentence := fmt.Sprintf("@everyone\n```課題：%sの締め切りを通知します.\n```", title)
+				return channelID, sentence
+			} else if mention == "me" {
+				sentence := fmt.Sprintf("課題：%sの締め切りを通知します.", title)
+				return channelID, sentence
+			}
+		}
+	}
+	return "", ""
+}
+
+
+func ViewEachRow(myChannelID string, data string)(string){
+	// データを", "で分割
+	parts := strings.Split(data, ", ")
+
+	// データの長さで, weeklyか, onceかを判別
+	// 長さ5はweekly
+	if len(parts) == 5 {
+		// 各要素を変数に格納
+		ChannelID := parts[0]
+		title := parts[1]
+		hour := parts[2]
+		weekday := parts[3]
+		mention := parts[4]
+		dayJ, err := WeekEtoJ(weekday)
+		if err != nil {
+			log.Printf("failed to convert day to Japanese: %v", err)
+			return ""
+		}
+		// 自分がメンション対象の時，表示
+		if(mention == "everyone"){
+			sentence := fmt.Sprintf("```形式 : 毎週(weekly)\nメンション対象 : %s\n課題 : %s\n%s曜日\n%s時\n```",mention, title, dayJ, hour)
+			return sentence
+		}else if(mention == "me"){
+			if(myChannelID == ChannelID){
+				sentence := fmt.Sprintf("```形式 : 毎週(weekly)\nメンション対象 : %s\n課題 : %s\n%s曜日\n%s時\n```",mention, title, dayJ, hour)
+				return sentence
+			}
+		}
+	}else if len(parts) == 7 { // 長さ7はonce
+		// 各要素を変数に格納
+		channelID := parts[0]
+		title := parts[1]
+		year := parts[2]
+		month := parts[3]
+		day := parts[4]
+		hour := parts[5]
+		mention := parts[6]
+
+		// 指定された年月日時が現在時刻と一致する場合にのみ処理を実行
+		if mention == "everyone" {
+			sentence := fmt.Sprintf("```形式 : 一回のみ(once)\nメンション対象 : %s\n課題 : %s\n%s年\n%s月\n%s日\n%s時\n```",mention, title, year, month, day, hour)
+			return sentence
+		} else if mention == "me" {
+			if(myChannelID == channelID){
+				sentence := fmt.Sprintf("```形式 : 一回のみ(once)\nメンション対象 : %s\n課題 : %s\n%s年\n%s月\n%s日\n%s時\n```",mention, title, year, month, day, hour)
+				return sentence
+			}
+		}
+	}
+	return  ""
+
+}
+
 
 func WeekEtoJ(day string) (string, error) {
 	dayJ := ""
