@@ -24,14 +24,6 @@ func (n FormCmd) Info() *discordgo.ApplicationCommand {
 				Type:        discordgo.ApplicationCommandOptionSubCommand,
 				Name:        "view",
 				Description: "課題期限通知時間の閲覧を行います.",
-				Options: []*discordgo.ApplicationCommandOption{
-					{
-						Type:        discordgo.ApplicationCommandOptionBoolean,
-						Name:        "YES",
-						Description: "閲覧する",
-						Required:    true,
-					},
-				},
 			},
 			{
 				Type:        discordgo.ApplicationCommandOptionSubCommand,

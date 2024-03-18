@@ -12,13 +12,6 @@ func HandleViewCommand(
 	i *discordgo.InteractionCreate,
 	options []*discordgo.ApplicationCommandInteractionDataOption,
 ) {
-	// 回答が正しく得られなかった場合，終了
-	if len(options) != 1 {
-		log.Printf("invalid options: %#v", options)
-		return
-	}
-	viewFlag := options[0].BoolValue()
-
 	// 処理を行っている間表示されるメッセージ
 	followUp := discordgo.WebhookParams{
 		Content: "通知一覧準備中...",
@@ -31,45 +24,33 @@ func HandleViewCommand(
 	}
 
 	// ファイルの読み込み
-	if(viewFlag){
-		// 自分のみならば，DMを送信する
-		channel, err := s.UserChannelCreate(i.Member.User.ID) // DMの生成
-		if err != nil {
-			fmt.Println("Error creating DM channel: ", err)
-			return
-		}
+	// 自分のみならば，DMを送信する
+	channel, err := s.UserChannelCreate(i.Member.User.ID) // DMの生成
+	if err != nil {
+		fmt.Println("Error creating DM channel: ", err)
+		return
+	}
 
-		// 自分のみのチャンネルに，通知一覧を送信する
-		remindData, err := subfunc.ReadDataFile()
-		if err != nil {
-			log.Printf("failed to get data.txt: %v", err)
-			return
+	// 自分のみのチャンネルに，通知一覧を送信する
+	remindData, err := subfunc.ReadDataFile()
+	if err != nil {
+		log.Printf("failed to get data.txt: %v", err)
+		return
+	}
+	for _, data := range remindData {
+		sentence := subfunc.ViewEachRow(channel.ID, data)
+		if sentence != ""{
+			subfunc.SendMessage(s, channel.ID, sentence)
 		}
-		for _, data := range remindData {
-			sentence := subfunc.ViewEachRow(channel.ID, data)
-			if sentence != ""{
-				subfunc.SendMessage(s, channel.ID, sentence)
-			}
-		}
+	}
 		
-		// 表示を変更する
-		finishFollowUpStr := "viewコマンドが正しく発動されました."
-		finishFollowUp := discordgo.WebhookEdit{
-			Content: &finishFollowUpStr,
-		}
-		if _, err := s.FollowupMessageEdit(i.Interaction, followUpMsg.ID, &finishFollowUp); err != nil {
-			log.Printf("failed to edit follow-up message, err: %v", err)
-			return
-		}
-	}else{
-		// 表示を変更する
-		finishFollowUpStr := "viewコマンドがキャンセルされました."
-		finishFollowUp := discordgo.WebhookEdit{
-			Content: &finishFollowUpStr,
-		}
-		if _, err := s.FollowupMessageEdit(i.Interaction, followUpMsg.ID, &finishFollowUp); err != nil {
-			log.Printf("failed to edit follow-up message, err: %v", err)
-			return
-		}
+	// 表示を変更する
+	finishFollowUpStr := "viewコマンドが正しく発動されました."
+	finishFollowUp := discordgo.WebhookEdit{
+		Content: &finishFollowUpStr,
+	}
+	if _, err := s.FollowupMessageEdit(i.Interaction, followUpMsg.ID, &finishFollowUp); err != nil {
+		log.Printf("failed to edit follow-up message, err: %v", err)
+		return
 	}
 }
