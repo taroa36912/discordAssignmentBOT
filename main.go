@@ -2,22 +2,22 @@ package main
 
 import (
 	"fmt"
-	"github.com/bwmarrin/discordgo"
-	"github.com/joho/godotenv"
+	"formbot/cmd"
+	"formbot/cmd/delete"
+	"formbot/cmd/form"
+	"formbot/cmd/nox"
+	"formbot/event/checkForm"
 	"log"
 	"os"
 	"os/signal"
-	"formbot/event/send"
-	"formbot/cmd"
-	"formbot/cmd/delete"
-	"formbot/cmd/nox"
-	"formbot/cmd/form"
+
+	"github.com/bwmarrin/discordgo"
+	"github.com/joho/godotenv"
 )
 
 const (
 	EnvDiscordToken = "discord_token"
 	EnvClientId     = "client_id"
-
 )
 
 func main() {
@@ -38,9 +38,9 @@ func main() {
 		fmt.Println("failed to login")
 		fmt.Println(err)
 	}
-	
+
 	//イベントハンドラを追加
-	discord.AddHandler(send.OnMessageCreate)
+	discord.AddHandler(checkform.CheckReminder)
 	err = discord.Open()
 
 	if err != nil {
@@ -66,7 +66,7 @@ func main() {
 	<-stop
 	fmt.Println("Removing commands...")
 	// コマンドを削除
-    cmdHandler.Deactivate()
+	cmdHandler.Deactivate()
 
 }
 

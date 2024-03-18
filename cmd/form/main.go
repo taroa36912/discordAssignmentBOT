@@ -50,8 +50,8 @@ func (n FormCmd) Info() *discordgo.ApplicationCommand {
 			},
 			{
 				Type:        discordgo.ApplicationCommandOptionSubCommand,
-				Name:        "add",
-				Description: "課題期限通知時間の追加を行います.",
+				Name:        "add-weekly",
+				Description: "課題期限毎週通知の追加を行います.",
 				Options: []*discordgo.ApplicationCommandOption{
 					{
 						Type:        discordgo.ApplicationCommandOptionInteger,
@@ -74,32 +74,55 @@ func (n FormCmd) Info() *discordgo.ApplicationCommand {
 							{Name: "土曜日", Value: "Saturday"},
 						},
 					},
+					{
+						Type:        discordgo.ApplicationCommandOptionString,
+						Name:        "mention",
+						Description: "メンション範囲",
+						Required:    true,
+						Choices: []*discordgo.ApplicationCommandOptionChoice{
+							{Name: "自分のみ", Value: "me"},
+							{Name: "全員", Value: "everyone"},
+						},
+					},
 				},
 			},
 			{
 				Type:        discordgo.ApplicationCommandOptionSubCommand,
-				Name:        "update",
+				Name:        "add-once",
 				Description: "課題期限通知時間の更新を行います.",
 				Options: []*discordgo.ApplicationCommandOption{
+					{
+						Type:        discordgo.ApplicationCommandOptionInteger,
+						Name:        "year",
+						Description: "通知する年",
+						Required:    true,
+					},
+					{
+						Type:        discordgo.ApplicationCommandOptionInteger,
+						Name:        "month",
+						Description: "通知する月",
+						Required:    true,
+					},
+					{
+						Type:        discordgo.ApplicationCommandOptionInteger,
+						Name:        "day",
+						Description: "通知する日",
+						Required:    true,
+					},
 					{
 						Type:        discordgo.ApplicationCommandOptionInteger,
 						Name:        "hour",
 						Description: "通知する時間(時)",
 						Required:    true,
-					},
+					},					
 					{
 						Type:        discordgo.ApplicationCommandOptionString,
-						Name:        "day",
-						Description: "通知する曜日",
+						Name:        "mention",
+						Description: "メンション範囲",
 						Required:    true,
 						Choices: []*discordgo.ApplicationCommandOptionChoice{
-							{Name: "日曜日", Value: "Sunday"},
-							{Name: "月曜日", Value: "Monday"},
-							{Name: "火曜日", Value: "Tuesday"},
-							{Name: "水曜日", Value: "Wednesday"},
-							{Name: "木曜日", Value: "Thursday"},
-							{Name: "金曜日", Value: "Friday"},
-							{Name: "土曜日", Value: "Saturday"},
+							{Name: "自分のみ", Value: "me"},
+							{Name: "全員", Value: "everyone"},
 						},
 					},
 				},
@@ -167,7 +190,7 @@ func (n FormCmd) Handle(
 
 	// それぞれのサブコマンド内での処理を行う
 	switch subCommand {
-	case "view", "add", "update", "delete":
+	case "view", "add-weekly", "add-once", "delete":
 		handleSubCommand(s, i, subCommand, options)
 	default:
 		log.Printf("invalid subcommand: %s", subCommand)
@@ -185,10 +208,10 @@ func handleSubCommand(
 	switch subCommand {
 	case "view":
 		sub.HandleViewCommand(s, i, options)
-	case "add":
-		sub.HandleAddCommand(s, i, options)
-	case "update":
-		sub.HandleUpdateCommand(s, i, options)
+	case "add-weekly":
+		sub.HandleAddWeeklyCommand(s, i, options)
+	case "add-once":
+		sub.HandleAddOnceCommand(s, i, options)
 	case "delete":
 		sub.HandleDeleteCommand(s, i, options)
 	}

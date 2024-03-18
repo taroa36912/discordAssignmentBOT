@@ -19,7 +19,7 @@ func HandleDeleteCommand(
 	day := options[1].StringValue()
 
 	// ファイルへの書き込み
-	err := subfunc.WriteToDataFile(channelID, channelName, fmt.Sprintf("%d", hour), day)
+	err := subfunc.WriteToDataFile(fmt.Sprintf("%s, %s, %d, %s",channelID, channelName, hour, day))
 	if err != nil {
 		log.Printf("failed to write data to file: %v", err)
 		return
