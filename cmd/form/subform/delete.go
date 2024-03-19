@@ -2,6 +2,7 @@ package sub
 
 import (
 	"fmt"
+	"formbot/function"
 	"github.com/bwmarrin/discordgo"
 	"log"
 )
@@ -11,51 +12,45 @@ func HandleDeleteCommand(
 	i *discordgo.InteractionCreate,
 	options []*discordgo.ApplicationCommandInteractionDataOption,
 ) {
-	// サブコマンドが発動されたことを確認
-	log.Println("deleteコマンドが発動されました。")
-
-	// 選択肢を用意
-	choices := generateReminderChoices()
-
-	// 選択肢を含んだメッセージを送信
-	msg := "削除する通知を選択してください："
-	_, err := s.FollowupMessageCreate(i.Interaction, true, &discordgo.WebhookParams{
-		Content: msg,
-		Components: [][]discordgo.MessageComponent{
-			{
-				&discordgo.ActionRow{
-					Components: choices,
-				},
-			},
-		},
-	})
+	// 処理を行っている間表示されるメッセージ
+	followUp := discordgo.WebhookParams{
+		Content: "通知一覧準備中...",
+		Flags:   discordgo.MessageFlagsEphemeral,
+	}
+	followUpMsg, err := s.FollowupMessageCreate(i.Interaction, true, &followUp)
 	if err != nil {
-		log.Printf("failed to send follow-up message with choices, err: %v", err)
+		log.Printf("failed to send follow-up message, err: %v", err)
 		return
 	}
-}
 
-func generateReminderChoices() []*discordgo.MessageComponent {
-	// 簡単な選択肢を用意する（a, b, c）
-	choices := []*discordgo.MessageComponent{
-		{
-			Type: discordgo.ComponentTypeButton,
-			Style: discordgo.ButtonPrimary,
-			Label: "選択肢A",
-			CustomID: "deleteChoiceA",
-		},
-		{
-			Type: discordgo.ComponentTypeButton,
-			Style: discordgo.ButtonPrimary,
-			Label: "選択肢B",
-			CustomID: "deleteChoiceB",
-		},
-		{
-			Type: discordgo.ComponentTypeButton,
-			Style: discordgo.ButtonPrimary,
-			Label: "選択肢C",
-			CustomID: "deleteChoiceC",
-		},
+	// ファイルの読み込み
+	// 自分のみならば，DMを送信する
+	channel, err := s.UserChannelCreate(i.Member.User.ID) // DMの生成
+	if err != nil {
+		fmt.Println("Error creating DM channel: ", err)
+		return
 	}
-	return choices
+
+	// 自分のみのチャンネルに，通知一覧を送信する
+	remindData, err := subfunc.ReadDataFile()
+	if err != nil {
+		log.Printf("failed to get data.txt: %v", err)
+		return
+	}
+	for _, data := range remindData {
+		sentence := subfunc.ViewEachRow(channel.ID, data)
+		if sentence != ""{
+			subfunc.SendMessage(s, channel.ID, sentence)
+		}
+	}
+		
+	// 表示を変更する
+	finishFollowUpStr := "deleteコマンドが正しく発動されました."
+	finishFollowUp := discordgo.WebhookEdit{
+		Content: &finishFollowUpStr,
+	}
+	if _, err := s.FollowupMessageEdit(i.Interaction, followUpMsg.ID, &finishFollowUp); err != nil {
+		log.Printf("failed to edit follow-up message, err: %v", err)
+		return
+	}
 }

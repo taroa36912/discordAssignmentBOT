@@ -114,7 +114,15 @@ func (n FormCmd) Info() *discordgo.ApplicationCommand {
 			{
 				Type:        discordgo.ApplicationCommandOptionSubCommand,
 				Name:        "delete",
-				Description: "課題期限通知時間の削除を行います.",
+				Description: "課題期限通知時間の削除を行います.viewコマンドで通知番号を確認してください.",
+				Options: []*discordgo.ApplicationCommandOption{
+					{
+						Type:        discordgo.ApplicationCommandOptionInteger,
+						Name:        "delete-index",
+						Description: "削除する通知番号",
+						Required:    true,
+					},
+				},
 			},
 		},
 	}
