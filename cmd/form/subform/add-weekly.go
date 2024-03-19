@@ -25,6 +25,7 @@ func HandleAddWeeklyCommand(
     	log.Printf("failed to get channel information: %v", err)
     	return
 	}
+
 	channelName := channel.Name
 	hour := options[0].IntValue()
 	day := options[1].StringValue()
@@ -38,6 +39,30 @@ func HandleAddWeeklyCommand(
 	followUpMsg, err := s.FollowupMessageCreate(i.Interaction, true, &followUp)
 	if err != nil {
 		log.Printf("failed to send follow-up message, err: %v", err)
+		return
+	}
+
+	// everyoneメンションが2つ以上あるとき, キャンセルして終了する
+	remindData, err := subfunc.ReadDataFile()
+	if err != nil {
+		log.Printf("failed to get data.txt: %v", err)
+		return
+	}
+	count := 0
+	for _, data := range remindData {
+		flag := subfunc.CheckWeeklyEachRow(channelID, channelName, data)
+		if flag{count++}
+	}
+	if count > 1 {
+		// 通知追加中の表示を変更する
+		finishFollowUpStr := "2つ以上のweekly-everyone通知は設定できません."
+		finishFollowUp := discordgo.WebhookEdit{
+			Content: &finishFollowUpStr,
+		}
+		if _, err := s.FollowupMessageEdit(i.Interaction, followUpMsg.ID, &finishFollowUp); err != nil {
+			log.Printf("failed to edit follow-up message, err: %v", err)
+			return
+		}
 		return
 	}
 

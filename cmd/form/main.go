@@ -1,12 +1,13 @@
 package form
 
 import (
-	"github.com/bwmarrin/discordgo"
 	"formbot/cmd/form/subform"
+	"github.com/bwmarrin/discordgo"
 	"log"
 )
 
 const EnvDataPath = "data_path"
+
 type FormCmd struct {
 }
 
@@ -91,7 +92,13 @@ func (n FormCmd) Info() *discordgo.ApplicationCommand {
 						Name:        "hour",
 						Description: "通知する時間(時)",
 						Required:    true,
-					},					
+					},
+					{
+						Type:        discordgo.ApplicationCommandOptionString,
+						Name:        "message",
+						Description: "通知する内容を簡潔に書いてください",
+						Required:    true,
+					},
 					{
 						Type:        discordgo.ApplicationCommandOptionString,
 						Name:        "mention",
@@ -108,39 +115,21 @@ func (n FormCmd) Info() *discordgo.ApplicationCommand {
 				Type:        discordgo.ApplicationCommandOptionSubCommand,
 				Name:        "delete",
 				Description: "課題期限通知時間の削除を行います.",
-				Options: []*discordgo.ApplicationCommandOption{
-					{
-						Type:        discordgo.ApplicationCommandOptionInteger,
-						Name:        "hour",
-						Description: "通知する時間(時)",
-						Required:    true,
-					},
-					{
-						Type:        discordgo.ApplicationCommandOptionString,
-						Name:        "day",
-						Description: "通知する曜日",
-						Required:    true,
-						Choices: []*discordgo.ApplicationCommandOptionChoice{
-							{Name: "日曜日", Value: "Sunday"},
-							{Name: "月曜日", Value: "Monday"},
-							{Name: "火曜日", Value: "Tuesday"},
-							{Name: "水曜日", Value: "Wednesday"},
-							{Name: "木曜日", Value: "Thursday"},
-							{Name: "金曜日", Value: "Friday"},
-							{Name: "土曜日", Value: "Saturday"},
-						},
-					},
-				},
 			},
 		},
 	}
 }
 
-
 func (n FormCmd) Handle(
 	s *discordgo.Session,
 	i *discordgo.InteractionCreate,
 ) {
+	// インタラクションがDMからのものであるかを確認します
+	if i.Interaction.GuildID == "" {
+		log.Printf("command invoked in a DM, ignoring...")
+		return
+	}
+
 	opts := i.ApplicationCommandData().Options
 
 	// サブコマンドが正しく選択されていることを確認
@@ -152,7 +141,6 @@ func (n FormCmd) Handle(
 	// サブコマンドに応じて処理を振り分け
 	subCommand := opts[0].Name
 	options := opts[0].Options
-
 
 	// 処理を始める前の手続き
 	if err := s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{

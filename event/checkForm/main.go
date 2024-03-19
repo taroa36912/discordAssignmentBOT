@@ -10,10 +10,9 @@ import (
 )
 
 func CheckReminder(s *discordgo.Session, e *discordgo.Ready){
-
-	// 現在の時刻と曜日を取得
-	current := time.Now()
 	for {
+		// 現在の時刻と曜日を取得
+		current := time.Now()
 		remindData, err := subfunc.ReadDataFile()
 		if err != nil {
 			log.Printf("failed to get data.txt: %v", err)

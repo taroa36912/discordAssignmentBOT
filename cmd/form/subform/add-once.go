@@ -15,24 +15,18 @@ func HandleAddOnceCommand(
 	options []*discordgo.ApplicationCommandInteractionDataOption,
 ) {
 	// 回答が正しく得られなかった場合，終了
-	if len(options) != 5 {
+	if len(options) != 6 {
 		log.Printf("invalid options: %#v", options)
 		return
 	}
 
 	channelID := i.ChannelID
-	// コマンドが投下されたチャンネルのチャンネル名を取得
-	channel, err := s.Channel(i.ChannelID)
-	if err != nil {
-    	log.Printf("failed to get channel information: %v", err)
-    	return
-	}
-	channelName := channel.Name
 	year := options[0].IntValue()
 	month := options[1].IntValue()
 	day := options[2].IntValue()
 	hour := options[3].IntValue()
-	mention := options[4].StringValue()
+	channelName := options[4].StringValue()
+	mention := options[5].StringValue()
 
 	// 処理を行っている間表示されるメッセージ
 	followUp := discordgo.WebhookParams{

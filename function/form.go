@@ -1,12 +1,13 @@
 package subfunc
 
 import (
-	"log"
-	"fmt"
-	"os"
 	"bufio"
-	"time"
+	"fmt"
+	"log"
+	"os"
 	"strings"
+	"time"
+
 	"github.com/bwmarrin/discordgo"
 )
 
@@ -66,6 +67,44 @@ func ReadDataFile() ([]string, error) {
 	return lines, nil
 }
 
+// data.txtのうち，strに一致するものを削除する
+func ReadAndDeleteDataFile(str string) error {
+	// ファイルを開きます。ファイルが存在しない場合はエラーを返します。
+	file, err := os.OpenFile("data.txt", os.O_RDWR, 0644)
+	if err != nil {
+		return fmt.Errorf("failed to open data file: %v", err)
+	}
+	defer file.Close()
+
+	var newLines []string
+	scanner := bufio.NewScanner(file)
+	for scanner.Scan() {
+		line := scanner.Text()
+		// 特定の文字列と一致する行を削除します
+		if line != str {
+			newLines = append(newLines, line)
+		}
+	}
+
+	// スキャン中にエラーが発生した場合はエラーを返します。
+	if err := scanner.Err(); err != nil {
+		return fmt.Errorf("failed to scan data file: %v", err)
+	}
+
+	// ファイルを閉じてから、新しい内容を書き込みます
+	if err := file.Close(); err != nil {
+		return fmt.Errorf("failed to close data file: %v", err)
+	}
+
+	// ファイルを再度開いて、新しい内容を書き込みます
+	if err := os.WriteFile("data.txt", []byte(strings.Join(newLines, "\n")), 0644); err != nil {
+		return fmt.Errorf("failed to write to data file: %v", err)
+	}
+
+	return nil
+}
+
+
 
 func CheckEachRow(s *discordgo.Session, e *discordgo.Ready, data string, current time.Time)(string, string){
 	// データを", "で分割
@@ -114,16 +153,36 @@ func CheckEachRow(s *discordgo.Session, e *discordgo.Ready, data string, current
 			month == fmt.Sprintf("%d", currentMonth) &&
 			day == fmt.Sprintf("%d", currentDay) &&
 			hour == fmt.Sprintf("%d", currentHour) {
+			ReadAndDeleteDataFile(data)
 			if mention == "everyone" {
 				sentence := fmt.Sprintf("@everyone\n```課題：%sの締め切りを通知します.\n```", title)
 				return channelID, sentence
 			} else if mention == "me" {
-				sentence := fmt.Sprintf("課題：%sの締め切りを通知します.", title)
+				sentence := fmt.Sprintf("```課題：%sの締め切りを通知します.```", title)
 				return channelID, sentence
 			}
 		}
 	}
 	return "", ""
+}
+
+
+func CheckWeeklyEachRow(defaultChannelID string, defaltChannelName string, data string)(bool){
+	// データを", "で分割
+	parts := strings.Split(data, ", ")
+
+	// データの長さで, weeklyか, onceかを判別
+	// 長さ5はweekly
+	if len(parts) == 5 {
+		channelID := parts[0]
+		title := parts[1]
+		mention := parts[4]
+		// 記録された時刻と曜日と現在の時刻と曜日が一致する場合にSendMessageを実行
+		if(defaultChannelID == channelID && defaltChannelName == title && mention == "everyone"){
+			return true
+		}
+	}
+	return false
 }
 
 

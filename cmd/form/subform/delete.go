@@ -2,36 +2,60 @@ package sub
 
 import (
 	"fmt"
-	"formbot/function"
 	"github.com/bwmarrin/discordgo"
 	"log"
 )
 
 func HandleDeleteCommand(
-	
 	s *discordgo.Session,
 	i *discordgo.InteractionCreate,
 	options []*discordgo.ApplicationCommandInteractionDataOption,
 ) {
-	channelID := i.ChannelID
-	channelName := "ChannelName" // 本当のチャンネル名をここに設定
-	hour := options[0].IntValue()
-	day := options[1].StringValue()
+	// サブコマンドが発動されたことを確認
+	log.Println("deleteコマンドが発動されました。")
 
-	// ファイルへの書き込み
-	err := subfunc.WriteToDataFile(fmt.Sprintf("%s, %s, %d, %s",channelID, channelName, hour, day))
+	// 選択肢を用意
+	choices := generateReminderChoices()
+
+	// 選択肢を含んだメッセージを送信
+	msg := "削除する通知を選択してください："
+	_, err := s.FollowupMessageCreate(i.Interaction, true, &discordgo.WebhookParams{
+		Content: msg,
+		Components: [][]discordgo.MessageComponent{
+			{
+				&discordgo.ActionRow{
+					Components: choices,
+				},
+			},
+		},
+	})
 	if err != nil {
-		log.Printf("failed to write data to file: %v", err)
+		log.Printf("failed to send follow-up message with choices, err: %v", err)
 		return
 	}
+}
 
-	// アラームセット完了報告
-	dayJ, err := subfunc.WeekEtoJ(day)
-	if err != nil {
-		log.Printf("failed to convert day to Japanese: %v", err)
-		return
+func generateReminderChoices() []*discordgo.MessageComponent {
+	// 簡単な選択肢を用意する（a, b, c）
+	choices := []*discordgo.MessageComponent{
+		{
+			Type: discordgo.ComponentTypeButton,
+			Style: discordgo.ButtonPrimary,
+			Label: "選択肢A",
+			CustomID: "deleteChoiceA",
+		},
+		{
+			Type: discordgo.ComponentTypeButton,
+			Style: discordgo.ButtonPrimary,
+			Label: "選択肢B",
+			CustomID: "deleteChoiceB",
+		},
+		{
+			Type: discordgo.ComponentTypeButton,
+			Style: discordgo.ButtonPrimary,
+			Label: "選択肢C",
+			CustomID: "deleteChoiceC",
+		},
 	}
-
-	result := fmt.Sprintf("毎週%s曜日の%d時リマインドを通知します.", dayJ, hour)
-	subfunc.SendMessage(s, i.ChannelID, result)
+	return choices
 }
