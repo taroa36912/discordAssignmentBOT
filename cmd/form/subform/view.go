@@ -33,6 +33,7 @@ func HandleViewCommand(
 
 	// 自分のみのチャンネルに，通知一覧を送信する
 	remindData, err := subfunc.ReadDataFile()
+	// 通知番号の表示
 	count := 1
 	if err != nil {
 		log.Printf("failed to get data.txt: %v", err)
@@ -40,12 +41,12 @@ func HandleViewCommand(
 	}
 	for _, data := range remindData {
 		sentence := subfunc.ViewEachRow(channel.ID, data)
-		if sentence != ""{
-			subfunc.SendMessage(s, channel.ID, fmt.Sprintf("%d. %s", count, sentence))
+		if sentence != "" {
+			subfunc.SendMessage(s, channel.ID, fmt.Sprintf("通知番号 %d\n```%s```", count, sentence))
 			count++
 		}
 	}
-		
+
 	// 表示を変更する
 	finishFollowUpStr := "viewコマンドが正しく発動されました."
 	finishFollowUp := discordgo.WebhookEdit{

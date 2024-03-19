@@ -206,11 +206,11 @@ func ViewEachRow(myChannelID string, data string)(string){
 		}
 		// 自分がメンション対象の時，表示
 		if(mention == "everyone"){
-			sentence := fmt.Sprintf("```形式 : 毎週(weekly)\nメンション対象 : %s\n課題 : %s\n%s曜日 : %s時\n```",mention, title, dayJ, hour)
+			sentence := fmt.Sprintf("形式 : 毎週(weekly)\nメンション対象 : %s\n課題 : %s\n%s曜日 : %s時\n",mention, title, dayJ, hour)
 			return sentence
 		}else if(mention == "me"){
 			if(myChannelID == ChannelID){
-				sentence := fmt.Sprintf("```形式 : 毎週(weekly)\nメンション対象 : %s\n課題 : %s\n%s曜日 : %s時\n```",mention, title, dayJ, hour)
+				sentence := fmt.Sprintf("形式 : 毎週(weekly)\nメンション対象 : %s\n課題 : %s\n%s曜日 : %s時\n",mention, title, dayJ, hour)
 				return sentence
 			}
 		}
@@ -226,11 +226,11 @@ func ViewEachRow(myChannelID string, data string)(string){
 
 		// 指定された年月日時が現在時刻と一致する場合にのみ処理を実行
 		if mention == "everyone" {
-			sentence := fmt.Sprintf("```形式 : 一回のみ(once)\nメンション対象 : %s\n課題 : %s\n%s年%s月%s日%s時\n```",mention, title, year, month, day, hour)
+			sentence := fmt.Sprintf("形式 : 一回のみ(once)\nメンション対象 : %s\n課題 : %s\n%s年%s月%s日%s時\n",mention, title, year, month, day, hour)
 			return sentence
 		} else if mention == "me" {
 			if(myChannelID == channelID){
-				sentence := fmt.Sprintf("```形式 : 一回のみ(once)\nメンション対象 : %s\n課題 : %s\n%s年%s月%s日%s時\n```",mention, title, year, month, day, hour)
+				sentence := fmt.Sprintf("形式 : 一回のみ(once)\nメンション対象 : %s\n課題 : %s\n%s年%s月%s日%s時\n",mention, title, year, month, day, hour)
 				return sentence
 			}
 		}

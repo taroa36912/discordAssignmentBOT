@@ -12,6 +12,15 @@ func HandleDeleteCommand(
 	i *discordgo.InteractionCreate,
 	options []*discordgo.ApplicationCommandInteractionDataOption,
 ) {
+
+	// 回答が正しく得られなかった場合，終了
+	if len(options) != 1 {
+		log.Printf("invalid options: %#v", options)
+		return
+	}
+
+	index := options[0].IntValue()
+	
 	// 処理を行っている間表示されるメッセージ
 	followUp := discordgo.WebhookParams{
 		Content: "通知一覧準備中...",
@@ -33,17 +42,22 @@ func HandleDeleteCommand(
 
 	// 自分のみのチャンネルに，通知一覧を送信する
 	remindData, err := subfunc.ReadDataFile()
+	// 通知番号の表示
+	count := 1
 	if err != nil {
 		log.Printf("failed to get data.txt: %v", err)
 		return
 	}
 	for _, data := range remindData {
 		sentence := subfunc.ViewEachRow(channel.ID, data)
-		if sentence != ""{
-			subfunc.SendMessage(s, channel.ID, sentence)
+		if sentence != "" {
+			if count == int(index){
+				subfunc.ReadAndDeleteDataFile(data)
+			}
+			count++
 		}
 	}
-		
+
 	// 表示を変更する
 	finishFollowUpStr := "deleteコマンドが正しく発動されました."
 	finishFollowUp := discordgo.WebhookEdit{

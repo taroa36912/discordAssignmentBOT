@@ -10,6 +10,7 @@ import (
 )
 
 func CheckReminder(s *discordgo.Session, e *discordgo.Ready){
+	fmt.Println("Periodic task executed at: ", time.Now())
 	for {
 		// 現在の時刻と曜日を取得
 		current := time.Now()
@@ -19,7 +20,6 @@ func CheckReminder(s *discordgo.Session, e *discordgo.Ready){
 			return
 		}
 		// ここに定期的に行いたい処理を記述する
-		fmt.Println("Periodic task executed at: ", time.Now())
 		for _, data := range remindData {
 			channelID, sentence := subfunc.CheckEachRow(s, e, data, current)
 			if channelID != "" && sentence != ""{
