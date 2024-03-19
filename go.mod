@@ -1,6 +1,6 @@
 module formbot
 
-go 1.22.0
+go 1.21
 
 require (
 	github.com/bwmarrin/discordgo v0.27.1 // direct
