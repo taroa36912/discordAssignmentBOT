@@ -5,7 +5,6 @@ import (
 	"formbot/cmd"
 	"formbot/cmd/delete"
 	"formbot/cmd/form"
-	"formbot/cmd/nox"
 	"formbot/event/checkForm"
 	"log"
 	"os"
@@ -52,8 +51,6 @@ func main() {
 	cmds.Add(formCmd)
 	deleteCmd := delete.NewDeleteCmd()
 	cmds.Add(deleteCmd)
-	noxCmd := nox.NewNoxCmd()
-	cmds.Add(noxCmd)
 
 	cmdHandler := cmds.Activate(discord)
 	defer cmdHandler.Deactivate()
