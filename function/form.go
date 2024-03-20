@@ -155,10 +155,10 @@ func CheckEachRow(s *discordgo.Session, e *discordgo.Ready, data string, current
 			hour == fmt.Sprintf("%d", currentHour) {
 			ReadAndDeleteDataFile(data)
 			if mention == "everyone" {
-				sentence := fmt.Sprintf("@everyone\n```課題：%sの締め切りを通知します.\n```", title)
+				sentence := fmt.Sprintf("@everyone\n```当日：%sの締め切りを通知します.\n```", title)
 				return channelID, sentence
 			} else if mention == "me" {
-				sentence := fmt.Sprintf("```課題：%sの締め切りを通知します.```", title)
+				sentence := fmt.Sprintf("```当日：%sの締め切りを通知します.```", title)
 				return channelID, sentence
 			}
 		}
