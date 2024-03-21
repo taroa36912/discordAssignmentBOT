@@ -5,6 +5,7 @@ import (
 	"formbot/function"
 	"github.com/bwmarrin/discordgo"
 	"log"
+	"strings"
 )
 
 func HandleDeleteCommand(
@@ -53,7 +54,7 @@ func HandleDeleteCommand(
 		if sentence != "" {
 			if count == int(index){
 				mention := subfunc.MentionType(data)
-				if mention == "everyone"{subfunc.SendMessage(s, i.ChannelID, fmt.Sprintf("@everyone```以下の通知を削除します.\n%s```", sentence))}else if mention == "me"{subfunc.SendMessage(s, channel.ID, fmt.Sprintf("```以下の通知を削除します.\n%s```", sentence))}
+				if mention == "everyone"{subfunc.SendMessage(s, strings.Split(data, ", ")[0], fmt.Sprintf("@everyone```以下の通知を削除します.\n%s```", sentence))}else if mention == "me"{subfunc.SendMessage(s, strings.Split(data, ", ")[0], fmt.Sprintf("```以下の通知を削除します.\n%s```", sentence))}
 				subfunc.ReadAndDeleteDataFile(data)
 			}
 			count++
