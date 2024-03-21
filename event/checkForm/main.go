@@ -13,7 +13,8 @@ func CheckReminder(s *discordgo.Session, e *discordgo.Ready){
 	fmt.Println("Periodic task executed at: ", time.Now())
 	for {
 		// 現在の時刻と曜日を取得
-		current := time.Now()
+		currentE := time.Now()
+		current := currentE.Add(9 * time.Hour)
 		remindData, err := subfunc.ReadDataFile()
 		if err != nil {
 			log.Printf("failed to get data.txt: %v", err)
