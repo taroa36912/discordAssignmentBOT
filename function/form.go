@@ -240,6 +240,24 @@ func ViewEachRow(myChannelID string, data string)(string){
 }
 
 
+func MentionType(data string)(string){
+	// データを", "で分割
+	parts := strings.Split(data, ", ")
+
+	// データの長さで, weeklyか, onceかを判別
+	// 長さ5はweekly
+	if len(parts) == 5 {
+		mention := parts[4]
+		return mention
+	}else if len(parts) == 7 { // 長さ7はonce
+		mention := parts[6]
+		return mention
+	}
+	return  ""
+}
+
+
+
 func WeekEtoJ(day string) (string, error) {
 	dayJ := ""
 	switch day {
