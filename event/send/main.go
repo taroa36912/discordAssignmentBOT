@@ -4,19 +4,15 @@ import (
 	"fmt"
 	"formbot/function"
 	"github.com/bwmarrin/discordgo"
-	"os"
-)
-
-const (
-	EnvClientId = "client_id"
+	"strings"
 )
 
 func OnMessageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
-	clientId := os.Getenv(EnvClientId)
 	u := m.Author
 	fmt.Printf("%20s %20s(%20s) > %s\n", m.ChannelID, u.Username, u.ID, m.Content)
-	// 個々の部分を書き換える
-	if u.ID != clientId {
-		subfunc.SendReply(s, m.ChannelID,"ok", m.Reference())
+	// メッセージが!cで始まる場合の処理
+	if strings.HasPrefix(m.Content, "!c") {
+		// ここに!cで始まるメッセージの処理を書く
+		subfunc.SendMessage(s, m.ChannelID, "!cが使われました.")
 	}
 }
