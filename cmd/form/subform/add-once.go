@@ -103,7 +103,7 @@ func HandleAddOnceCommand(
 			return
 		}
 		// メッセージを送信
-		_, err = s.ChannelMessageSend(channel.ID, fmt.Sprintf("```あなただけに見えるリマインドを設定しました.\n課題 : %s, %d年%d月%d日%d時にお知らせします.```", channelName, year, month, day, hour))
+		_, err = s.ChannelMessageSend(channel.ID, fmt.Sprintf("```あなただけに見えるリマインドを設定しました.\n当日 : %s, %d年%d月%d日%d時にお知らせします.```", channelName, year, month, day, hour))
 		if err != nil {
 			fmt.Println("Error sending message: ", err)
 			return

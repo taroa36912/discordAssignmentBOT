@@ -100,7 +100,7 @@ func HandleAddWeeklyCommand(
 			return
 		}
 		// メッセージを送信
-		_, err = s.ChannelMessageSend(channel.ID, fmt.Sprintf("```あなただけに見えるリマインドを設定しました.\n課題 : %s, 毎週%s曜日の%d時にお知らせします.```", channelName, dayJ, hour))
+		_, err = s.ChannelMessageSend(channel.ID, fmt.Sprintf("```あなただけに見えるリマインドを設定しました.\n当日 : %s, 毎週%s曜日の%d時にお知らせします.```", channelName, dayJ, hour))
 		if err != nil {
 			fmt.Println("Error sending message: ", err)
 			return
