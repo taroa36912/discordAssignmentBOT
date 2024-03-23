@@ -14,7 +14,7 @@ import (
 func WriteToDataFile(str string) error {
 	// OpenFile関数でファイルを開きます。第二引数にos.O_APPEND|os.O_WRONLY|os.O_CREATEを指定することで、
 	// 書き込み専用で、ファイルが存在しない場合は新しく作成し、ファイルの末尾に追記するように設定しています。
-	file, err := os.OpenFile("data.txt", os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0644)
+	file, err := os.OpenFile("form.txt", os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0644)
 	if err != nil {
 		return fmt.Errorf("failed to open data file: %v", err)
 	}
@@ -47,7 +47,7 @@ func WriteToDataFile(str string) error {
 
 func ReadDataFile() ([]string, error) {
 	// ファイルを開きます。ファイルが存在しない場合はエラーを返します。
-	file, err := os.Open("data.txt")
+	file, err := os.Open("form.txt")
 	if err != nil {
 		return nil, fmt.Errorf("failed to open data file: %v", err)
 	}
@@ -67,10 +67,10 @@ func ReadDataFile() ([]string, error) {
 	return lines, nil
 }
 
-// data.txtのうち，strに一致するものを削除する
+// form.txtのうち，strに一致するものを削除する
 func ReadAndDeleteDataFile(str string) error {
 	// ファイルを開きます。ファイルが存在しない場合はエラーを返します。
-	file, err := os.OpenFile("data.txt", os.O_RDWR, 0644)
+	file, err := os.OpenFile("form.txt", os.O_RDWR, 0644)
 	if err != nil {
 		return fmt.Errorf("failed to open data file: %v", err)
 	}
@@ -97,7 +97,7 @@ func ReadAndDeleteDataFile(str string) error {
 	}
 
 	// ファイルを再度開いて、新しい内容を書き込みます
-	if err := os.WriteFile("data.txt", []byte(strings.Join(newLines, "\n")), 0644); err != nil {
+	if err := os.WriteFile("form.txt", []byte(strings.Join(newLines, "\n")), 0644); err != nil {
 		return fmt.Errorf("failed to write to data file: %v", err)
 	}
 
