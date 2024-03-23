@@ -2,12 +2,28 @@ package event
 
 import (
 	"fmt"
-	"github.com/bwmarrin/discordgo"
 	"formbot/function"
+	"github.com/bwmarrin/discordgo"
 	"log"
+	"os"
+)
+
+const (
+	EnvZemiChannel = "zemi_channel_id"
 )
 
 func MessageReactionAdd(s *discordgo.Session, r *discordgo.MessageReactionAdd) {
+	zemiChannelID := os.Getenv(EnvZemiChannel)
+	attendanceEmoji := ":syusseki:"
+	absentEmoji := ":kesseki:"
+	nakairiEmoji := ":totyusanka:"
+	nakanukeEmoji := ":totyunuke:"
+	// 特定のチャンネルのリアクションでなければ即終了
+	if zemiChannelID != r.ChannelID {
+		return
+	}
+	// 特定のリアクションでなければ即終了
+	// if r.Emoji != attendanceEmoji && r.Emoji 
 	// 自分のみのチャンネルに，通知一覧を送信する
 	zemiData, err := subfunc.ReadZemiFile()
 	if err != nil {

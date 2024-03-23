@@ -1,0 +1,2 @@
+zemiName, zemiWeek, zemiHour
+野崎, Wednesday, 13

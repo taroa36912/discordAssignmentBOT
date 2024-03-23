@@ -10,7 +10,7 @@ import (
 
 func ReadZemiFile() ([]string, error) {
 	// ファイルを開きます。ファイルが存在しない場合はエラーを返します。
-	file, err := os.Open("zemi.txt")
+	file, err := os.Open("zemiMessage.txt")
 	if err != nil {
 		return nil, fmt.Errorf("failed to open data file: %v", err)
 	}
