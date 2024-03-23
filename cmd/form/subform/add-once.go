@@ -97,7 +97,7 @@ func HandleAddOnceCommand(
 			fmt.Println("Error creating DM channel: ", err)
 			return
 		}
-		err = subfunc.WriteToDataFile(fmt.Sprintf("%s, %s, %d, %d, %d, %d, %s", channel.ID, channelName, year, month, day, hour, mention))
+		err = subfunc.WriteToDataFile("form.txt", fmt.Sprintf("%s, %s, %d, %d, %d, %d, %s", channel.ID, channelName, year, month, day, hour, mention))
 		if err != nil {
 			log.Printf("failed to write data to file: %v", err)
 			return
@@ -109,7 +109,7 @@ func HandleAddOnceCommand(
 			return
 		}
 	}else{
-		err = subfunc.WriteToDataFile(fmt.Sprintf("%s, %s, %d, %d, %d, %d, %s", channelID, channelName, year, month, day, hour, mention))
+		err = subfunc.WriteToDataFile("form.txt", fmt.Sprintf("%s, %s, %d, %d, %d, %d, %s", channelID, channelName, year, month, day, hour, mention))
 		if err != nil {
 			log.Printf("failed to write data to file: %v", err)
 			return
