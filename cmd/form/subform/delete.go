@@ -42,7 +42,7 @@ func HandleDeleteCommand(
 	}
 
 	// 自分のみのチャンネルに，通知一覧を送信する
-	remindData, err := subfunc.ReadDataFile()
+	remindData, err := subfunc.ReadFile("form.txt")
 	// 通知番号の表示
 	count := 1
 	if err != nil {

@@ -8,9 +8,16 @@ import (
 	"bufio"
 )
 
-func ReadZemiFile() ([]string, error) {
+
+const (
+	EnvZemiChannel = "zemi_channel_id"
+)
+
+
+// 指定したファイル名のファイルを取得
+func ReadFile(fileName string) ([]string, error) {
 	// ファイルを開きます。ファイルが存在しない場合はエラーを返します。
-	file, err := os.Open("zemiMessage.txt")
+	file, err := os.Open(fileName)
 	if err != nil {
 		return nil, fmt.Errorf("failed to open data file: %v", err)
 	}
@@ -29,3 +36,5 @@ func ReadZemiFile() ([]string, error) {
 
 	return lines, nil
 }
+
+

@@ -43,7 +43,7 @@ func HandleAddWeeklyCommand(
 	}
 
 	// everyoneメンションが2つ以上あるとき, キャンセルして終了する
-	remindData, err := subfunc.ReadDataFile()
+	remindData, err := subfunc.ReadFile("form.txt")
 	if err != nil {
 		log.Printf("failed to get data.txt: %v", err)
 		return

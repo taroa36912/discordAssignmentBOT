@@ -40,7 +40,7 @@ func main() {
 
 	//イベントハンドラを追加
 	discord.AddHandler(event.CheckReminder)
-	discord.AddHandler(event.MessageReactionAdd)
+	discord.AddHandler(event.CheckZemiReaction)
 	err = discord.Open()
 
 	if err != nil {
