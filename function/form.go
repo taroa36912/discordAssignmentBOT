@@ -257,7 +257,6 @@ func MentionType(data string)(string){
 }
 
 
-
 func WeekEtoJ(day string) (string, error) {
 	dayJ := ""
 	switch day {

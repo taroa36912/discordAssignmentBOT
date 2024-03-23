@@ -1,4 +1,4 @@
-package checkform
+package event
 
 import (
 	"fmt"

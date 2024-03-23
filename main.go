@@ -5,8 +5,7 @@ import (
 	"formbot/cmd"
 	"formbot/cmd/delete"
 	"formbot/cmd/form"
-	"formbot/event/checkForm"
-	"formbot/event/send"
+	"formbot/event"
 	"log"
 	"os"
 	"os/signal"
@@ -40,8 +39,8 @@ func main() {
 	}
 
 	//イベントハンドラを追加
-	discord.AddHandler(checkform.CheckReminder)
-	discord.AddHandler(send.OnMessageCreate)
+	discord.AddHandler(event.CheckReminder)
+	discord.AddHandler(event.MessageReactionAdd)
 	err = discord.Open()
 
 	if err != nil {

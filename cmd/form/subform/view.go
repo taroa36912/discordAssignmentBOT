@@ -33,12 +33,12 @@ func HandleViewCommand(
 
 	// 自分のみのチャンネルに，通知一覧を送信する
 	remindData, err := subfunc.ReadDataFile()
-	// 通知番号の表示
-	count := 1
 	if err != nil {
 		log.Printf("failed to get data.txt: %v", err)
 		return
 	}
+	// 通知番号の表示
+	count := 1
 	for _, data := range remindData {
 		sentence := subfunc.ViewEachRow(channel.ID, data)
 		if sentence != "" {
