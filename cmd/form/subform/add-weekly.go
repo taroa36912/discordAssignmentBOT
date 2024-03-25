@@ -5,6 +5,7 @@ import (
 	"formbot/function"
 	"github.com/bwmarrin/discordgo"
 	"log"
+	"strings"
 )
 
 func HandleAddWeeklyCommand(
@@ -50,7 +51,7 @@ func HandleAddWeeklyCommand(
 	}
 	count := 0
 	for _, data := range remindData {
-		flag := subfunc.CheckWeeklyEachRow(channelID, channelName, data)
+		flag := checkWeeklyEachRow(channelID, channelName, data)
 		if flag{count++}
 	}
 	if count > 1 {
@@ -94,7 +95,7 @@ func HandleAddWeeklyCommand(
 			fmt.Println("Error creating DM channel: ", err)
 			return
 		}
-		err = subfunc.WriteToDataFile("form.txt", fmt.Sprintf("%s, %s, %d, %s, %s", channel.ID, channelName, hour, day, mention))
+		err = subfunc.WriteFile("form.txt", fmt.Sprintf("%s, %s, %d, %s, %s", channel.ID, channelName, hour, day, mention))
 		if err != nil {
 			log.Printf("failed to write data to file: %v", err)
 			return
@@ -106,7 +107,7 @@ func HandleAddWeeklyCommand(
 			return
 		}
 	}else{
-		err = subfunc.WriteToDataFile("data.txt", fmt.Sprintf("%s, %s, %d, %s, %s", channelID, channelName, hour, day, mention))
+		err = subfunc.WriteFile("data.txt", fmt.Sprintf("%s, %s, %d, %s, %s", channelID, channelName, hour, day, mention))
 		if err != nil {
 			log.Printf("failed to write data to file: %v", err)
 			return
@@ -141,4 +142,24 @@ func HandleAddWeeklyCommand(
 		return
 	}
 	
+}
+
+
+
+func checkWeeklyEachRow(defaultChannelID string, defaltChannelName string, data string)(bool){
+	// データを", "で分割
+	parts := strings.Split(data, ", ")
+
+	// データの長さで, weeklyか, onceかを判別
+	// 長さ5はweekly
+	if len(parts) == 5 {
+		channelID := parts[0]
+		title := parts[1]
+		mention := parts[4]
+		// 記録された時刻と曜日と現在の時刻と曜日が一致する場合にSendMessageを実行
+		if(defaultChannelID == channelID && defaltChannelName == title && mention == "everyone"){
+			return true
+		}
+	}
+	return false
 }

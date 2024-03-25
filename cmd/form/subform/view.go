@@ -42,7 +42,12 @@ func HandleViewCommand(
 	for _, data := range remindData {
 		sentence := subfunc.ViewEachRow(channel.ID, data)
 		if sentence != "" {
-			subfunc.SendMessage(s, channel.ID, fmt.Sprintf("通知番号 %d\n```%s```", count, sentence))
+			// メッセージを送信
+			_, err = s.ChannelMessageSend(channel.ID, fmt.Sprintf("通知番号 %d\n```%s```", count, sentence))
+			if err != nil {
+				fmt.Println("Error sending message: ", err)
+				return
+			}
 			count++
 		}
 	}

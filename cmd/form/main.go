@@ -6,8 +6,6 @@ import (
 	"log"
 )
 
-const EnvDataPath = "data_path"
-
 type FormCmd struct {
 }
 

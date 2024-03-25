@@ -54,8 +54,22 @@ func HandleDeleteCommand(
 		if sentence != "" {
 			if count == int(index){
 				mention := subfunc.MentionType(data)
-				if mention == "everyone"{subfunc.SendMessage(s, strings.Split(data, ", ")[0], fmt.Sprintf("@everyone```以下の通知を削除します.\n%s```", sentence))}else if mention == "me"{subfunc.SendMessage(s, strings.Split(data, ", ")[0], fmt.Sprintf("```以下の通知を削除します.\n%s```", sentence))}
-				subfunc.ReadAndDeleteDataFile(data)
+				if mention == "everyone"{
+					// メッセージを送信
+					_, err = s.ChannelMessageSend(strings.Split(data, ", ")[0], fmt.Sprintf("@everyone```以下の通知を削除します.\n%s```", sentence))
+					if err != nil {
+						fmt.Println("Error sending message: ", err)
+						return
+					}
+				}else if mention == "me"{
+					// メッセージを送信
+					_, err = s.ChannelMessageSend(strings.Split(data, ", ")[0], fmt.Sprintf("```以下の通知を削除します.\n%s```", sentence))
+					if err != nil {
+						fmt.Println("Error sending message: ", err)
+						return
+					}
+				}
+				subfunc.DeleteFile("form.txt", data)
 			}
 			count++
 		}
