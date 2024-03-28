@@ -95,7 +95,7 @@ func HandleAddWeeklyCommand(
 			fmt.Println("Error creating DM channel: ", err)
 			return
 		}
-		err = subfunc.WriteFile("form.txt", fmt.Sprintf("%s, %s, %d, %s, %s", channel.ID, channelName, hour, day, mention))
+		err = subfunc.WritetoFile("form.txt", fmt.Sprintf("%s, %s, %d, %s, %s", channel.ID, channelName, hour, day, mention))
 		if err != nil {
 			log.Printf("failed to write data to file: %v", err)
 			return
@@ -107,7 +107,7 @@ func HandleAddWeeklyCommand(
 			return
 		}
 	}else{
-		err = subfunc.WriteFile("data.txt", fmt.Sprintf("%s, %s, %d, %s, %s", channelID, channelName, hour, day, mention))
+		err = subfunc.WritetoFile("data.txt", fmt.Sprintf("%s, %s, %d, %s, %s", channelID, channelName, hour, day, mention))
 		if err != nil {
 			log.Printf("failed to write data to file: %v", err)
 			return

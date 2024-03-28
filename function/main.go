@@ -1,13 +1,14 @@
 package subfunc
 
 import (
-	//"github.com/bwmarrin/discordgo"
+	"github.com/bwmarrin/discordgo"
 	//"log"
 	"bufio"
 	"fmt"
+	"log"
 	"os"
 	"strings"
-	"log"
+	"time"
 )
 
 const (
@@ -51,8 +52,7 @@ func DeleteFile(fileName string, str string) error {
 	return nil
 }
 
-
-func ViewEachRow(myChannelID string, data string)(string){
+func ViewEachRow(myChannelID string, data string) string {
 	// データを", "で分割
 	parts := strings.Split(data, ", ")
 
@@ -71,16 +71,16 @@ func ViewEachRow(myChannelID string, data string)(string){
 			return ""
 		}
 		// 自分がメンション対象の時，表示
-		if(mention == "everyone"){
-			sentence := fmt.Sprintf("形式 : 毎週(weekly)\nメンション対象 : %s\n課題 : %s\n%s曜日 : %s時\n",mention, title, dayJ, hour)
+		if mention == "everyone" {
+			sentence := fmt.Sprintf("形式 : 毎週(weekly)\nメンション対象 : %s\n課題 : %s\n%s曜日 : %s時\n", mention, title, dayJ, hour)
 			return sentence
-		}else if(mention == "me"){
-			if(myChannelID == ChannelID){
-				sentence := fmt.Sprintf("形式 : 毎週(weekly)\nメンション対象 : %s\n課題 : %s\n%s曜日 : %s時\n",mention, title, dayJ, hour)
+		} else if mention == "me" {
+			if myChannelID == ChannelID {
+				sentence := fmt.Sprintf("形式 : 毎週(weekly)\nメンション対象 : %s\n課題 : %s\n%s曜日 : %s時\n", mention, title, dayJ, hour)
 				return sentence
 			}
 		}
-	}else if len(parts) == 7 { // 長さ7はonce
+	} else if len(parts) == 7 { // 長さ7はonce
 		// 各要素を変数に格納
 		channelID := parts[0]
 		title := parts[1]
@@ -92,21 +92,20 @@ func ViewEachRow(myChannelID string, data string)(string){
 
 		// 指定された年月日時が現在時刻と一致する場合にのみ処理を実行
 		if mention == "everyone" {
-			sentence := fmt.Sprintf("形式 : 一回のみ(once)\nメンション対象 : %s\n課題 : %s\n%s年%s月%s日%s時\n",mention, title, year, month, day, hour)
+			sentence := fmt.Sprintf("形式 : 一回のみ(once)\nメンション対象 : %s\n課題 : %s\n%s年%s月%s日%s時\n", mention, title, year, month, day, hour)
 			return sentence
 		} else if mention == "me" {
-			if(myChannelID == channelID){
-				sentence := fmt.Sprintf("形式 : 一回のみ(once)\nメンション対象 : %s\n課題 : %s\n%s年%s月%s日%s時\n",mention, title, year, month, day, hour)
+			if myChannelID == channelID {
+				sentence := fmt.Sprintf("形式 : 一回のみ(once)\nメンション対象 : %s\n課題 : %s\n%s年%s月%s日%s時\n", mention, title, year, month, day, hour)
 				return sentence
 			}
 		}
 	}
-	return  ""
+	return ""
 
 }
 
-
-func MentionType(data string)(string){
+func MentionType(data string) string {
 	// データを", "で分割
 	parts := strings.Split(data, ", ")
 
@@ -115,13 +114,12 @@ func MentionType(data string)(string){
 	if len(parts) == 5 {
 		mention := parts[4]
 		return mention
-	}else if len(parts) == 7 { // 長さ7はonce
+	} else if len(parts) == 7 { // 長さ7はonce
 		mention := parts[6]
 		return mention
 	}
-	return  ""
+	return ""
 }
-
 
 func WeekEtoJ(day string) (string, error) {
 	dayJ := ""
@@ -146,9 +144,8 @@ func WeekEtoJ(day string) (string, error) {
 	return dayJ, nil
 }
 
-
 // 指定したファイル名に，指定した文章を書き込み
-func WriteFile(fileName string, str string) error {
+func WritetoFile(fileName string, str string) error {
 	// OpenFile関数でファイルを開きます。第二引数にos.O_APPEND|os.O_WRONLY|os.O_CREATEを指定することで、
 	// 書き込み専用で、ファイルが存在しない場合は新しく作成し、ファイルの末尾に追記するように設定しています。
 	file, err := os.OpenFile(fileName, os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0644)
@@ -206,13 +203,20 @@ func ReadFile(fileName string) ([]string, error) {
 }
 
 
-
-
-func GetTeacherName(mentionID string) (string, error) {
-	if mentionID == "1221179383742595204" {
-		return "野崎", nil
-	}else if mentionID == "1221339641031032842"{
-		return "自主", nil
+// 現在の時刻を取得し，そこから1年間を配列に格納
+func GenerateDateTimeOptions(start time.Time, end time.Time) []*discordgo.ApplicationCommandOptionChoice {
+	var options []*discordgo.ApplicationCommandOptionChoice
+	for current := start; current.Before(end); current = current.Add(time.Hour) {
+		// 日時の日本語名を取得
+		dayOfWeek := current.Weekday().String()
+		// 日時の日本語表記を作成
+		dateString := fmt.Sprintf("%d年%d月%d日 %s %02d時", current.Year(), int(current.Month()), current.Day(), dayOfWeek, current.Hour())
+		// 選択肢オプションに日時を追加
+		choice := &discordgo.ApplicationCommandOptionChoice{
+			Name:  dateString,
+			Value: current.Format("2006-01-02T15:04:05"), // 日時を文字列にフォーマット
+		}
+		options = append(options, choice)
 	}
-	return "", fmt.Errorf("InputName is not allowed")
+	return options
 }

@@ -2,8 +2,11 @@ package form
 
 import (
 	"formbot/cmd/form/subform"
+	"formbot/function"
 	"github.com/bwmarrin/discordgo"
 	"log"
+	"time"
+	"fmt"
 )
 
 type FormCmd struct {
@@ -15,6 +18,14 @@ func NewFormCmd() FormCmd {
 
 // コマンド作成&入力関数
 func (n FormCmd) Info() *discordgo.ApplicationCommand {
+	location, err := time.LoadLocation("Asia/Tokyo")
+	if err != nil {
+		fmt.Println("Failed to load location:", err)
+	}
+	// 現在時刻を取得
+	start := time.Now().In(location)
+	end := start.AddDate(1, 0, 0) // 現在から1年後までの日時を生成
+	options := subfunc.GenerateDateTimeOptions(start, end)
 	return &discordgo.ApplicationCommand{
 		Name:        "form",
 		Description: "このチャンネルの課題の締め切りを通知する設定を行います.",
@@ -68,28 +79,11 @@ func (n FormCmd) Info() *discordgo.ApplicationCommand {
 				Description: "課題期限通知時間の更新を行います.",
 				Options: []*discordgo.ApplicationCommandOption{
 					{
-						Type:        discordgo.ApplicationCommandOptionInteger,
-						Name:        "year",
-						Description: "通知する年",
+						Type:        discordgo.ApplicationCommandOptionString,
+						Name:        "time",
+						Description: "通知をする年月日時",
 						Required:    true,
-					},
-					{
-						Type:        discordgo.ApplicationCommandOptionInteger,
-						Name:        "month",
-						Description: "通知する月",
-						Required:    true,
-					},
-					{
-						Type:        discordgo.ApplicationCommandOptionInteger,
-						Name:        "day",
-						Description: "通知する日",
-						Required:    true,
-					},
-					{
-						Type:        discordgo.ApplicationCommandOptionInteger,
-						Name:        "hour",
-						Description: "通知する時間(時)",
-						Required:    true,
+						Choices: options,
 					},
 					{
 						Type:        discordgo.ApplicationCommandOptionString,

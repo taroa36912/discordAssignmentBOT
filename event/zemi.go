@@ -10,61 +10,47 @@ import (
 	"time"
 )
 
-const (
-	EnvZemiChannel = "zemi_channel_id"
+var (
+	zemiChannelID = os.Getenv("myserver_zemi_channel_id")
+	zemiRoleID = os.Getenv("myserver_zemi_role_id")
+	zemiWeek = "Thursday"
+	zemiHour = 20
+	zemiMinute = 0
 )
 
+
+
+// 毎日20時にゼミの出席メッセージを作る関数
 func CreateZemiMessage(s *discordgo.Session, e *discordgo.Ready) {
-	zemiChannelID := os.Getenv(EnvZemiChannel)
 	// 日本標準時の場所情報を取得
 	location, err := time.LoadLocation("Asia/Tokyo")
 	if err != nil {
 		fmt.Println("Failed to load location:", err)
 		return
 	}
-	// 現在時刻を取得
+	// 一週間後の時刻を取得
 	current := time.Now().In(location)
-
-	//毎晩20時に実行
-	zemiData, err := subfunc.ReadFile("zemiData.txt")
-	if err != nil {
-		log.Printf("failed to get data.txt: %v", err)
-		return
-	}
 	oneWeekLater := current.AddDate(0, 0, 7)
-	for _, zemi := range zemiData {
-		// ここに処理を書く
-		parts := strings.Split(zemi, ", ")
-		if len(parts) == 2 {
-			mentionID := parts[0]
-			weekday := parts[1]
-			teacher, err := subfunc.GetTeacherName(mentionID)
-			if err != nil {
-				log.Printf("failed to get teacher name: %v", err)
-				return
-			}
-			dayJ, err := subfunc.WeekEtoJ(weekday)
-			if err != nil {
-				log.Printf("failed to convert day to Japanese: %v", err)
-				return
-			}
-			year, month, day := oneWeekLater.Date()
-			currentweekday := current.Weekday().String()
-			if weekday == currentweekday {
-				sentence := fmt.Sprintf("<@%s>```%d年%d月%d日%s曜日\n%sゼミの出欠を取ります.\nリアクションをしてください.```", mentionID, year, month, day, dayJ, teacher)
-				msg, err := s.ChannelMessageSend(zemiChannelID, sentence)
-				if err != nil {
-					log.Println("Error sending message : ", err)
-				}
-				subfunc.WriteFile("zemiMessage.txt", fmt.Sprintf("%s, %s, %d, %d, %d, %s", msg.ID, mentionID, year, month, day, weekday))
-			}
+	currentweekday := current.Weekday().String()
+	if currentweekday == zemiWeek {
+		year, month, day := oneWeekLater.Date()
+		dayJ, err := subfunc.WeekEtoJ(zemiWeek)
+		if err != nil {
+			log.Printf("failed to convert day to Japanese: %v", err)
+			return
 		}
+		sentence := fmt.Sprintf("<@%s>```%d年%d月%d日%s曜日%d時%d分~\n自主ゼミの出欠を取ります.\nリアクションをしてください.```", zemiRoleID, year, month, day, dayJ, zemiHour, zemiMinute)
+		msg, err := s.ChannelMessageSend(zemiChannelID, sentence)
+		if err != nil {
+			log.Println("Error sending message : ", err)
+		}
+		subfunc.WritetoFile("zemiMessage.txt", fmt.Sprintf("%s, %d, %d, %d, %s, %d, %d", msg.ID, year, month, day, zemiWeek, zemiHour, zemiMinute))
 	}
 }
 
-// 8時に呼び，リアクションをチェックする関数
+
+// 毎朝8時に呼び，その日に開催するゼミのリアクションをチェックする関数
 func CheckZemiReaction(s *discordgo.Session, e *discordgo.Ready) {
-	zemiChannelID := os.Getenv(EnvZemiChannel)
 	// attendanceEmoji := ":syusseki:"
 	// absentEmoji := ":kesseki:"
 	// nakairiEmoji := ":totyusanka:"
@@ -76,83 +62,95 @@ func CheckZemiReaction(s *discordgo.Session, e *discordgo.Ready) {
 		log.Printf("failed to get data.txt: %v", err)
 		return
 	}
+
+	// 現在の時刻と曜日を取得
+	// 日本標準時の場所情報を取得
+	location, err := time.LoadLocation("Asia/Tokyo")
+	if err != nil {
+		fmt.Println("Failed to load location:", err)
+		return
+	}
+	// 現在時刻を取得
+	current := time.Now().In(location)
+
 	for _, message := range zemiMessage {
 		parts := strings.Split(message, ", ")
-		if len(parts) == 6 {
+		if len(parts) == 7 {
 			messageID := parts[0]
-			mentionID := parts[1]
-			year := parts[2]
-			month := parts[3]
-			day := parts[4]
-			weekday := parts[5]
-			teacher, err := subfunc.GetTeacherName(mentionID)
-			if err != nil {
-				log.Printf("failed to get teacher name: %v", err)
-				return
-			}
+			year := parts[1]
+			month := parts[2]
+			day := parts[3]
+			weekday := parts[4]
+			hour := parts[5]
+			minute := parts[6]
 			dayJ, err := subfunc.WeekEtoJ(weekday)
 			if err != nil {
 				log.Printf("failed to convert day to Japanese: %v", err)
 				return
 			}
-			// 続きの処理
-			// メッセージを取得
-			_, err = s.ChannelMessage(zemiChannelID, messageID)
-			if err != nil {
-				subfunc.DeleteFile("zemiMessage.txt", message)
-				return
-			}
+			currentYear := current.Year()
+			currentMonth := int(current.Month())
+			currentday := current.Day()
 
-			// 返信先のメッセージの参照情報
-			reference := &discordgo.MessageReference{
-				MessageID: messageID,
-			}
-			sentence := fmt.Sprintf("<@%s>```%s年%s月%s日%s曜日\n%sゼミ当日です.\nリアクションをしてください.```", mentionID, year, month, day, dayJ, teacher)
-			// SendReply関数を呼び出してメッセージを送信
-			_, err = s.ChannelMessageSendReply(zemiChannelID, sentence, reference)
-			if err != nil {
-				log.Println("Error sending message: ", err)
+			if(fmt.Sprintf("%d", currentYear) == year && fmt.Sprintf("%d", currentMonth) == month && fmt.Sprintf("%d", currentday) == day){
+				// メッセージを取得
+				_, err = s.ChannelMessage(zemiChannelID, messageID)
+				if err != nil {
+					s.ChannelMessageSend(zemiChannelID, "ゼミがキャンセルされました.")
+					subfunc.DeleteFile("zemiMessage.txt", message)
+					return
+				}
+
+				// 返信先のメッセージの参照情報
+				reference := &discordgo.MessageReference{
+					MessageID: messageID,
+				}
+				sentence := fmt.Sprintf("<@%s>```%s年%s月%s日%s曜日%s時%s分\n自主ゼミ当日です.\nリアクションをしてください.```", zemiRoleID, year, month, day, dayJ, hour, minute)
+				// SendReply関数を呼び出してメッセージを送信
+				_, err = s.ChannelMessageSendReply(zemiChannelID, sentence, reference)
+				if err != nil {
+					log.Println("Error sending message: ", err)
+				}
 			}
 		}
 	}
 }
 
-// ゼミの時間直前に呼び出し，ゼミの時間に一致するものを通知する関数
+
+// 毎時0分に呼び出し，その日に開始されるゼミの時間に一致するものを通知する関数
 func ZemiTimeNotification(s *discordgo.Session, e *discordgo.Ready) {
-	zemiChannelID := os.Getenv(EnvZemiChannel)
 	// zemi出席のメッセージIDそれぞれに対し処理
 	zemiMessage, err := subfunc.ReadFile("zemiMessage.txt")
 	if err != nil {
 		log.Printf("failed to get data.txt: %v", err)
 		return
 	}
+
+	// 現在の時刻と曜日を取得
+	// 日本標準時の場所情報を取得
+	location, err := time.LoadLocation("Asia/Tokyo")
+	if err != nil {
+		fmt.Println("Failed to load location:", err)
+		return
+	}
+	// 現在時刻を取得
+	current := time.Now().In(location)
+
 	for _, message := range zemiMessage {
 		parts := strings.Split(message, ", ")
-		if len(parts) == 6 {
+		if len(parts) == 7 {
 			messageID := parts[0]
-			mentionID := parts[1]
-			year := parts[2]
-			month := parts[3]
-			day := parts[4]
-			weekday := parts[5]
-			// 現在の時刻と曜日を取得
-			// 日本標準時の場所情報を取得
-			location, err := time.LoadLocation("Asia/Tokyo")
-			if err != nil {
-				fmt.Println("Failed to load location:", err)
-				return
-			}
-			// 現在時刻を取得
-			current := time.Now().In(location)
+			year := parts[1]
+			month := parts[2]
+			day := parts[3]
+			weekday := parts[4]
+			hour := parts[5]
+			minute := parts[6]
 			currentYear := current.Year()
 			currentMonth := int(current.Month())
 			currentday := current.Day()
-			if year == currentYear && month == currentMonth && day == currentday {
-				teacher, err := subfunc.GetTeacherName(mentionID)
-				if err != nil {
-					log.Printf("failed to get teacher name: %v", err)
-					return
-				}
+			currentHour := current.Hour()
+			if fmt.Sprintf("%d", currentYear) == year && fmt.Sprintf("%d", currentMonth) == month && fmt.Sprintf("%d", currentday) == day && fmt.Sprintf("%d", currentHour) == hour{
 				dayJ, err := subfunc.WeekEtoJ(weekday)
 				if err != nil {
 					log.Printf("failed to convert day to Japanese: %v", err)
@@ -162,7 +160,7 @@ func ZemiTimeNotification(s *discordgo.Session, e *discordgo.Ready) {
 				// メッセージを取得
 				_, err = s.ChannelMessage(zemiChannelID, messageID)
 				if err != nil {
-					s.ChannelMessageSend(zemiChannelID, fmt.Sprintf("%sゼミがキャンセルされました.", teacher))
+					s.ChannelMessageSend(zemiChannelID, "ゼミがキャンセルされました.")
 					subfunc.DeleteFile("zemiMessage.txt", message)
 					return
 				}
@@ -171,12 +169,13 @@ func ZemiTimeNotification(s *discordgo.Session, e *discordgo.Ready) {
 				reference := &discordgo.MessageReference{
 					MessageID: messageID,
 				}
-				sentence := fmt.Sprintf("<@%s>```%s年%s月%s日%s曜日\n%sゼミが開始されます.```", mentionID, year, month, day, dayJ, teacher)
+				sentence := fmt.Sprintf("<@%s>```%s年%s月%s日%s曜日%s時%s分\n自主ゼミが開始されます.```", zemiRoleID, year, month, day, dayJ, hour, minute)
 				// SendReply関数を呼び出してメッセージを送信
 				_, err = s.ChannelMessageSendReply(zemiChannelID, sentence, reference)
 				if err != nil {
 					log.Println("Error sending message: ", err)
 				}
+				subfunc.DeleteFile("zemiMessage.txt", message)
 			}
 		}
 	}
