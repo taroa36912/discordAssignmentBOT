@@ -204,7 +204,14 @@ func ReadFile(fileName string) ([]string, error) {
 
 
 // 現在の時刻を取得し，そこから1年間を配列に格納
-func GenerateDateTimeOptions(start time.Time, end time.Time) []*discordgo.ApplicationCommandOptionChoice {
+func GenerateDateTimeOptions() []*discordgo.ApplicationCommandOptionChoice {
+	location, err := time.LoadLocation("Asia/Tokyo")
+	if err != nil {
+		fmt.Println("Failed to load location:", err)
+	}
+	// 現在時刻を取得
+	start := time.Now().In(location)
+	end := start.AddDate(1, 0, 0) // 現在から1年後までの日時を生成
 	var options []*discordgo.ApplicationCommandOptionChoice
 	for current := start; current.Before(end); current = current.Add(time.Hour) {
 		// 日時の日本語名を取得

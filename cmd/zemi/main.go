@@ -25,14 +25,6 @@ var (
 
 // コマンド作成&入力関数
 func (n ZemiCmd) Info() *discordgo.ApplicationCommand {
-	location, err := time.LoadLocation("Asia/Tokyo")
-	if err != nil {
-		fmt.Println("Failed to load location:", err)
-	}
-	// 現在時刻を取得
-	start := time.Now().In(location)
-	end := start.AddDate(1, 0, 0) // 現在から1年後までの日時を生成
-	options := subfunc.GenerateDateTimeOptions(start, end)
 	return &discordgo.ApplicationCommand{
 		Name:        "zemi",
 		Description: "ゼミの日程が変更した際，こちらで再設定します. Botが生成したメッセージは削除してください.",
@@ -42,7 +34,7 @@ func (n ZemiCmd) Info() *discordgo.ApplicationCommand {
 				Name:        "time",
 				Description: "ゼミ開始の年月日時",
 				Required:    true,
-				Choices:     options,
+				Choices:     subfunc.GenerateDateTimeOptions(),
 			},
 			{
 				Type:        discordgo.ApplicationCommandOptionInteger,
