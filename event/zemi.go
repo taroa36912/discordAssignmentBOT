@@ -43,6 +43,7 @@ func CreateZemiMessage(s *discordgo.Session, e *discordgo.Ready) {
 		msg, err := s.ChannelMessageSend(zemiChannelID, sentence)
 		if err != nil {
 			log.Println("Error sending message : ", err)
+			return
 		}
 		subfunc.WritetoFile("zemiMessage.txt", fmt.Sprintf("%s, %d, %d, %d, %s, %d, %d", msg.ID, year, month, day, zemiWeek, zemiHour, zemiMinute))
 	}
