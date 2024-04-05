@@ -2,10 +2,10 @@ package zemi
 
 import (
 	"fmt"
-	"formbot/function"
 	"log"
 	"os"
-	"strconv"
+	"time"
+	"formbot/function"
 
 	"github.com/bwmarrin/discordgo"
 )
@@ -18,8 +18,8 @@ func NewZemiCmd() ZemiCmd {
 }
 
 var (
-	zemiChannelID = os.Getenv("myserver_zemi_channel_id")
-	zemiRoleID    = os.Getenv("myserver_zemi_role_id")
+	zemiChannelID = os.Getenv("zemi_channel_id")
+	zemiRoleID    = os.Getenv("zemi_role_id")
 )
 
 // コマンド作成&入力関数
@@ -100,7 +100,7 @@ func (n ZemiCmd) Info() *discordgo.ApplicationCommand {
 				Type:        discordgo.ApplicationCommandOptionInteger,
 				Name:        "minute",
 				Description: "ゼミ開始の分",
-				Required:    false,
+				Required:    true,
 			},
 		},
 	}
@@ -118,7 +118,7 @@ func (n ZemiCmd) Handle(
 	options := i.ApplicationCommandData().Options
 
 	// 回答が正しく得られなかった場合，終了
-	if len(options) != 5 {
+	if len(options) != 4 && len(options) != 5 {
 		log.Printf("invalid options: %#v", options)
 		return
 	}
@@ -126,9 +126,9 @@ func (n ZemiCmd) Handle(
 	// 処理を行っている間表示されるメッセージ
 	followUp := discordgo.WebhookParams{
 		Content: "ゼミ出席メッセージ追加中...",
-		Flags:   discordgo.MessageFlagsEphemeral,
+		Flags:   discordgo.MessageFlagEphemeral,
 	}
-	followUpMsg, err := s.FollowupMessageCreate(i.Interaction, true, &followUp)
+	followUpMsg, err := s.InteractionRespondWithFollowup(i.Interaction, &followUp)
 	if err != nil {
 		log.Printf("failed to send follow-up message, err: %v", err)
 		return
@@ -138,17 +138,20 @@ func (n ZemiCmd) Handle(
 	month := options[1].IntValue()
 	day := options[2].IntValue()
 	hour := options[3].IntValue()
+	weekday := getWeekday(int(year), int(month), int(day))
+	dayJ, err := subfunc.WeekEtoJ(weekday)
+	if err != nil {
+		log.Printf("failed to convert day to Japanese: %v", err)
+		return
+	}
 	minute := int(options[4].IntValue())
-	minuteStr := strconv.Itoa(minute)
-	if minuteStr == ""{
-		minute = 0
-	}else if minute < 0 || 59 < minute {
+	if minute < 0 || 59 < minute {
 		// 通知追加中の表示を変更する
 		finishFollowUpStr := "分は0~59の範囲で入力してください."
 		finishFollowUp := discordgo.WebhookEdit{
 			Content: &finishFollowUpStr,
 		}
-		if _, err := s.FollowupMessageEdit(i.Interaction, followUpMsg.ID, &finishFollowUp); err != nil {
+		if _, err := s.InteractionResponseEdit(i.Interaction, followUpMsg.ID, &finishFollowUp); err != nil {
 			log.Printf("failed to edit follow-up message, err: %v", err)
 			return
 		}
@@ -156,22 +159,31 @@ func (n ZemiCmd) Handle(
 	}
 
 	// ゼミ出席メッセージの追加
-	sentence := fmt.Sprintf("<@%s>```%d年%d月%d日%d時%d分\n自主ゼミの出欠を取ります.\nリアクションをしてください.```", zemiRoleID, year, month, day, hour, minute)
+	sentence := fmt.Sprintf("<@%s>```%d年%d月%d日%s曜日%d時%d分\n自主ゼミの出欠を取ります.\nリアクションをしてください.```", zemiRoleID, year, month, day, dayJ, hour, minute)
 	msg, err := s.ChannelMessageSend(zemiChannelID, sentence)
 	if err != nil {
 		log.Println("Error sending message : ", err)
 	}
 
-	subfunc.WritetoFile("zemiMessage.txt", fmt.Sprintf("%s, %d, %d, %d, %d, %d", msg.ID, year, month, day, hour, minute))
+	subfunc.WritetoFile("zemiMessage.txt", fmt.Sprintf("%s, %d, %d, %d, %s, %d, %d", msg.ID, year, month, day, weekday, hour, minute))
 
 	// 通知追加中の表示を変更する
 	finishFollowUpStr := "zemiコマンドが正しく発動されました."
 	finishFollowUp := discordgo.WebhookEdit{
 		Content: &finishFollowUpStr,
 	}
-	if _, err := s.FollowupMessageEdit(i.Interaction, followUpMsg.ID, &finishFollowUp); err != nil {
+	if _, err := s.InteractionResponseEdit(i.Interaction, followUpMsg.ID, &finishFollowUp); err != nil {
 		log.Printf("failed to edit follow-up message, err: %v", err)
 		return
 	}
 
+}
+
+func getWeekday(year, month, day int) string {
+	// 年月日からTime型の変数を作成
+	date := time.Date(year, time.Month(month), day, 0, 0, 0, 0, time.UTC)
+	// 曜日を取得
+	weekday := date.Weekday()
+	// 曜日を文字列に変換して返す
+	return weekday.String()
 }

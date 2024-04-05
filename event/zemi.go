@@ -11,8 +11,11 @@ import (
 )
 
 var (
-	zemiChannelID = os.Getenv("myserver_zemi_channel_id")
-	zemiRoleID = os.Getenv("myserver_zemi_role_id")
+	zemiServerID = os.Getenv("guild_id")
+	zemiChannelID = os.Getenv("zemi_channel_id")
+	zemiRoleID = os.Getenv("zemi_role_id")
+	zemiAttendID = os.Getenv("emoji_attend_id")
+	zemiAbsentID = os.Getenv("emoji_absent_id")
 	zemiWeek = "Thursday"
 	zemiHour = 10
 	zemiMinute = 0
@@ -102,11 +105,30 @@ func CheckZemiReaction(s *discordgo.Session, e *discordgo.Ready) {
 					return
 				}
 
+				// 出席リアクションをしたユーザーを取得
+				usersAttend, err := s.MessageReactions(zemiChannelID, messageID, zemiAttendID, 100, "", "")
+				if err != nil {
+					fmt.Println("Error getting reactions: ", err)
+					return
+				}
+				usersMentionAttend := usersMention(usersAttend)
+
+				// 欠席リアクションをしたユーザーを取得
+				usersAbsent, err := s.MessageReactions(zemiChannelID, messageID, zemiAbsentID, 100, "", "")
+				if err != nil {
+					fmt.Println("Error getting reactions: ", err)
+					return
+				}
+				usersMentionAbsence := usersMention(usersAbsent)
+
+
 				// 返信先のメッセージの参照情報
 				reference := &discordgo.MessageReference{
 					MessageID: messageID,
+					ChannelID: zemiChannelID,
+					GuildID: zemiServerID,
 				}
-				sentence := fmt.Sprintf("<@%s>```%s年%s月%s日%s曜日%s時%s分\n自主ゼミ当日です.\nリアクションをしてください.```", zemiRoleID, year, month, day, dayJ, hour, minute)
+				sentence := fmt.Sprintf("<@&%s>```%s年%s月%s日%s曜日%s時%s分\n自主ゼミ当日です.\n```参加者 : %s\n欠席者 : %s", zemiRoleID, year, month, day, dayJ, hour, minute, usersMentionAttend, usersMentionAbsence)
 				// SendReply関数を呼び出してメッセージを送信
 				_, err = s.ChannelMessageSendReply(zemiChannelID, sentence, reference)
 				if err != nil {
@@ -115,6 +137,16 @@ func CheckZemiReaction(s *discordgo.Session, e *discordgo.Ready) {
 			}
 		}
 	}
+}
+
+
+// ユーザーリストから，ユーザーIDを結合する関数
+func usersMention(users []*discordgo.User)(string){
+	userslist := ""
+	for _, user := range users{
+		userslist += "<@" + user.ID + ">, "
+	}
+	return userslist
 }
 
 
