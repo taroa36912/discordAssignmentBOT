@@ -14,7 +14,7 @@ var (
 	zemiChannelID = os.Getenv("myserver_zemi_channel_id")
 	zemiRoleID = os.Getenv("myserver_zemi_role_id")
 	zemiWeek = "Thursday"
-	zemiHour = 20
+	zemiHour = 10
 	zemiMinute = 0
 )
 
@@ -39,7 +39,7 @@ func CreateZemiMessage(s *discordgo.Session, e *discordgo.Ready) {
 			log.Printf("failed to convert day to Japanese: %v", err)
 			return
 		}
-		sentence := fmt.Sprintf("<@%s>```%d年%d月%d日%s曜日%d時%d分~\n自主ゼミの出欠を取ります.\nリアクションをしてください.```", zemiRoleID, year, month, day, dayJ, zemiHour, zemiMinute)
+		sentence := fmt.Sprintf("<@&%s>```%d年%d月%d日%s曜日%d時%d分~\n自主ゼミの出欠を取ります.\nリアクションをしてください.```", zemiRoleID, year, month, day, dayJ, zemiHour, zemiMinute)
 		msg, err := s.ChannelMessageSend(zemiChannelID, sentence)
 		if err != nil {
 			log.Println("Error sending message : ", err)
