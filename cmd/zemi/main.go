@@ -126,9 +126,9 @@ func (n ZemiCmd) Handle(
 	// 処理を行っている間表示されるメッセージ
 	followUp := discordgo.WebhookParams{
 		Content: "ゼミ出席メッセージ追加中...",
-		Flags:   discordgo.MessageFlagEphemeral,
+		Flags:   discordgo.MessageFlagsEphemeral,
 	}
-	followUpMsg, err := s.InteractionRespondWithFollowup(i.Interaction, &followUp)
+	followUpMsg, err := s.FollowupMessageCreate(i.Interaction, true, &followUp)
 	if err != nil {
 		log.Printf("failed to send follow-up message, err: %v", err)
 		return
@@ -151,7 +151,7 @@ func (n ZemiCmd) Handle(
 		finishFollowUp := discordgo.WebhookEdit{
 			Content: &finishFollowUpStr,
 		}
-		if _, err := s.InteractionResponseEdit(i.Interaction, followUpMsg.ID, &finishFollowUp); err != nil {
+		if _, err := s.FollowupMessageEdit(i.Interaction, followUpMsg.ID, &finishFollowUp); err != nil {
 			log.Printf("failed to edit follow-up message, err: %v", err)
 			return
 		}
@@ -172,7 +172,7 @@ func (n ZemiCmd) Handle(
 	finishFollowUp := discordgo.WebhookEdit{
 		Content: &finishFollowUpStr,
 	}
-	if _, err := s.InteractionResponseEdit(i.Interaction, followUpMsg.ID, &finishFollowUp); err != nil {
+	if _, err := s.FollowupMessageEdit(i.Interaction, followUpMsg.ID, &finishFollowUp); err != nil {
 		log.Printf("failed to edit follow-up message, err: %v", err)
 		return
 	}
