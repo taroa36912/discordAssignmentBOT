@@ -5,7 +5,6 @@ import (
 	"formbot/function"
 	"github.com/bwmarrin/discordgo"
 	"log"
-	"time"
 )
 
 
@@ -16,27 +15,24 @@ func HandleAddOnceCommand(
 	options []*discordgo.ApplicationCommandInteractionDataOption,
 ) {
 	// 回答が正しく得られなかった場合，終了
-	if len(options) != 3 {
+	if len(options) != 6 {
 		log.Printf("invalid options: %#v", options)
 		return
 	}
 
-	channelID := i.ChannelID
-	dateString := options[0].StringValue()
-	channelName := options[1].StringValue()
-	mention := options[2].StringValue()
-	// time.Parse を使って時間を解析し、変数に格納
-	parsedTime, err := time.Parse("2006-01-02T15:04:05", dateString)
+	year := options[0].IntValue()
+	month := options[1].IntValue()
+	day := options[2].IntValue()
+	hour := options[3].IntValue()
+	channelName := options[4].StringValue()
+	mention := options[5].StringValue()
+	// ロールIDからロール名を取得
+	mentionName, err := subfunc.GetRoleName(s, i.GuildID, mention) // ここに対象のロールIDを入れます
 	if err != nil {
-		fmt.Println("Failed to parse time:", err)
-		return
+		log.Println("ロール名の取得に失敗しました:", err)
+		mentionName = "undefined"
 	}
-
-	// 年、月、日、時を取得して変数に格納
-	year := parsedTime.Year()
-	month := parsedTime.Month()
-	day := parsedTime.Day()
-	hour := parsedTime.Hour()
+	channelID := i.ChannelID
 
 	// 処理を行っている間表示されるメッセージ
 	followUp := discordgo.WebhookParams{
@@ -57,7 +53,7 @@ func HandleAddOnceCommand(
 			fmt.Println("Error creating DM channel: ", err)
 			return
 		}
-		err = subfunc.WritetoFile("form.txt", fmt.Sprintf("%s, %s, %d, %d, %d, %d, %s", channel.ID, channelName, year, month, day, hour, mention))
+		err = subfunc.WritetoFile("form.txt", fmt.Sprintf("%s, %s, %d, %d, %d, %d, %s, %s", channel.ID, channelName, year, month, day, hour, mention, mentionName))
 		if err != nil {
 			log.Printf("failed to write data to file: %v", err)
 			return
@@ -69,7 +65,7 @@ func HandleAddOnceCommand(
 			return
 		}
 	}else{
-		err = subfunc.WritetoFile("form.txt", fmt.Sprintf("%s, %s, %d, %d, %d, %d, %s", channelID, channelName, year, month, day, hour, mention))
+		err = subfunc.WritetoFile("form.txt", fmt.Sprintf("%s, %s, %d, %d, %d, %d, %s, %s", channelID, channelName, year, month, day, hour, mention, mentionName))
 		if err != nil {
 			log.Printf("failed to write data to file: %v", err)
 			return
@@ -81,7 +77,7 @@ func HandleAddOnceCommand(
 		mes := discordgo.MessageEmbed{
 			Color:       0x800020,
 			Footer:      &discordgo.MessageEmbedFooter{Text: "通知が設定されました."},
-			Description: fmt.Sprintf("%d年%d月%d日%d時にリマインドを通知します.", year, month, day, hour),
+			Description: fmt.Sprintf("メンション範囲 : %s\nメッセージ : %s\n%d年%d月%d日%d時にリマインドを通知します.", mentionName, channelName, year, month, day, hour),
 			Author: &discordgo.MessageEmbedAuthor{
 				Name:    name,
 				URL:     fmt.Sprintf("https://discordapp.com/users/%s", i.Member.User.ID),

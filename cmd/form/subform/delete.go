@@ -24,7 +24,7 @@ func HandleDeleteCommand(
 	
 	// 処理を行っている間表示されるメッセージ
 	followUp := discordgo.WebhookParams{
-		Content: "通知一覧準備中...",
+		Content: "通知削除中...",
 		Flags:   discordgo.MessageFlagsEphemeral,
 	}
 	followUpMsg, err := s.FollowupMessageCreate(i.Interaction, true, &followUp)
@@ -46,7 +46,7 @@ func HandleDeleteCommand(
 	// 通知番号の表示
 	count := 1
 	if err != nil {
-		log.Printf("failed to get data.txt: %v", err)
+		log.Printf("failed to get form.txt: %v", err)
 		return
 	}
 	for _, data := range remindData {
@@ -54,16 +54,16 @@ func HandleDeleteCommand(
 		if sentence != "" {
 			if count == int(index){
 				mention := subfunc.MentionType(data)
-				if mention == "everyone"{
+				if mention == "me"{
 					// メッセージを送信
-					_, err = s.ChannelMessageSend(strings.Split(data, ", ")[0], fmt.Sprintf("@everyone```以下の通知を削除します.\n%s```", sentence))
+					_, err = s.ChannelMessageSend(strings.Split(data, ", ")[0], fmt.Sprintf("```以下の通知を削除します.\n%s```", sentence))
 					if err != nil {
 						fmt.Println("Error sending message: ", err)
 						return
 					}
-				}else if mention == "me"{
+				}else{
 					// メッセージを送信
-					_, err = s.ChannelMessageSend(strings.Split(data, ", ")[0], fmt.Sprintf("```以下の通知を削除します.\n%s```", sentence))
+					_, err = s.ChannelMessageSend(strings.Split(data, ", ")[0], fmt.Sprintf("<@&%s>```以下の通知を削除します.\n%s```", mention, sentence))
 					if err != nil {
 						fmt.Println("Error sending message: ", err)
 						return

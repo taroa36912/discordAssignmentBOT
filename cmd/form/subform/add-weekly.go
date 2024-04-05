@@ -5,7 +5,6 @@ import (
 	"formbot/function"
 	"github.com/bwmarrin/discordgo"
 	"log"
-	"strings"
 )
 
 func HandleAddWeeklyCommand(
@@ -31,6 +30,12 @@ func HandleAddWeeklyCommand(
 	hour := options[0].IntValue()
 	day := options[1].StringValue()
 	mention := options[2].StringValue()
+	// ロールIDからロール名を取得
+	mentionName, err := subfunc.GetRoleName(s, i.GuildID, mention) // ここに対象のロールIDを入れます
+	if err != nil {
+		log.Println("ロール名の取得に失敗しました:", err)
+		mentionName = "undefined"
+	}
 
 	// 処理を行っている間表示されるメッセージ
 	followUp := discordgo.WebhookParams{
@@ -40,44 +45,6 @@ func HandleAddWeeklyCommand(
 	followUpMsg, err := s.FollowupMessageCreate(i.Interaction, true, &followUp)
 	if err != nil {
 		log.Printf("failed to send follow-up message, err: %v", err)
-		return
-	}
-
-	// everyoneメンションが2つ以上あるとき, キャンセルして終了する
-	remindData, err := subfunc.ReadFile("form.txt")
-	if err != nil {
-		log.Printf("failed to get data.txt: %v", err)
-		return
-	}
-	count := 0
-	for _, data := range remindData {
-		flag := checkWeeklyEachRow(channelID, channelName, data)
-		if flag{count++}
-	}
-	if count > 1 {
-		// 通知追加中の表示を変更する
-		finishFollowUpStr := "2つ以上のweekly-everyone通知は設定できません."
-		finishFollowUp := discordgo.WebhookEdit{
-			Content: &finishFollowUpStr,
-		}
-		if _, err := s.FollowupMessageEdit(i.Interaction, followUpMsg.ID, &finishFollowUp); err != nil {
-			log.Printf("failed to edit follow-up message, err: %v", err)
-			return
-		}
-		return
-	}
-
-	// 時間が正しく入力されなかった場合，終了
-	if hour < 0 || 23 < hour {
-		// 通知追加中の表示を変更する
-		finishFollowUpStr := "時間は0~23の範囲で入力してください."
-		finishFollowUp := discordgo.WebhookEdit{
-			Content: &finishFollowUpStr,
-		}
-		if _, err := s.FollowupMessageEdit(i.Interaction, followUpMsg.ID, &finishFollowUp); err != nil {
-			log.Printf("failed to edit follow-up message, err: %v", err)
-			return
-		}
 		return
 	}
 
@@ -95,7 +62,7 @@ func HandleAddWeeklyCommand(
 			fmt.Println("Error creating DM channel: ", err)
 			return
 		}
-		err = subfunc.WritetoFile("form.txt", fmt.Sprintf("%s, %s, %d, %s, %s", channel.ID, channelName, hour, day, mention))
+		err = subfunc.WritetoFile("form.txt", fmt.Sprintf("%s, %s, %d, %s, %s, %s", channel.ID, channelName, hour, day, mention, mentionName))
 		if err != nil {
 			log.Printf("failed to write data to file: %v", err)
 			return
@@ -107,7 +74,7 @@ func HandleAddWeeklyCommand(
 			return
 		}
 	}else{
-		err = subfunc.WritetoFile("data.txt", fmt.Sprintf("%s, %s, %d, %s, %s", channelID, channelName, hour, day, mention))
+		err = subfunc.WritetoFile("form.txt", fmt.Sprintf("%s, %s, %d, %s, %s, %s", channelID, channelName, hour, day, mention, mentionName))
 		if err != nil {
 			log.Printf("failed to write data to file: %v", err)
 			return
@@ -119,7 +86,7 @@ func HandleAddWeeklyCommand(
 		mes := discordgo.MessageEmbed{
 			Color:       0x800020,
 			Footer:      &discordgo.MessageEmbedFooter{Text: "通知が設定されました."},
-			Description: fmt.Sprintf("毎週%s曜日の%d時にリマインドを通知します.", dayJ, hour),
+			Description: fmt.Sprintf("メンション範囲 : %s\nメッセージ : %s\n毎週%s曜日の%d時にリマインドを通知します.",mentionName, channelName, dayJ, hour),
 			Author: &discordgo.MessageEmbedAuthor{
 				Name:    name,
 				URL:     fmt.Sprintf("https://discordapp.com/users/%s", i.Member.User.ID),
@@ -142,24 +109,4 @@ func HandleAddWeeklyCommand(
 		return
 	}
 	
-}
-
-
-
-func checkWeeklyEachRow(defaultChannelID string, defaltChannelName string, data string)(bool){
-	// データを", "で分割
-	parts := strings.Split(data, ", ")
-
-	// データの長さで, weeklyか, onceかを判別
-	// 長さ5はweekly
-	if len(parts) == 5 {
-		channelID := parts[0]
-		title := parts[1]
-		mention := parts[4]
-		// 記録された時刻と曜日と現在の時刻と曜日が一致する場合にSendMessageを実行
-		if(defaultChannelID == channelID && defaltChannelName == title && mention == "everyone"){
-			return true
-		}
-	}
-	return false
 }

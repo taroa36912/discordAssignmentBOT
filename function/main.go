@@ -8,7 +8,6 @@ import (
 	"log"
 	"os"
 	"strings"
-	"time"
 )
 
 const (
@@ -52,35 +51,39 @@ func DeleteFile(fileName string, str string) error {
 	return nil
 }
 
+// 自分のメンションのみtrueを返す
 func ViewEachRow(myChannelID string, data string) string {
 	// データを", "で分割
 	parts := strings.Split(data, ", ")
 
 	// データの長さで, weeklyか, onceかを判別
-	// 長さ5はweekly
-	if len(parts) == 5 {
+	// 長さ6はweekly
+	if len(parts) == 6 {
 		// 各要素を変数に格納
-		ChannelID := parts[0]
+		channelID := parts[0]
 		title := parts[1]
 		hour := parts[2]
 		weekday := parts[3]
 		mention := parts[4]
+		mentionName := parts[5]
 		dayJ, err := WeekEtoJ(weekday)
 		if err != nil {
 			log.Printf("failed to convert day to Japanese: %v", err)
 			return ""
 		}
-		// 自分がメンション対象の時，表示
-		if mention == "everyone" {
-			sentence := fmt.Sprintf("形式 : 毎週(weekly)\nメンション対象 : %s\n課題 : %s\n%s曜日 : %s時\n", mention, title, dayJ, hour)
-			return sentence
-		} else if mention == "me" {
-			if myChannelID == ChannelID {
-				sentence := fmt.Sprintf("形式 : 毎週(weekly)\nメンション対象 : %s\n課題 : %s\n%s曜日 : %s時\n", mention, title, dayJ, hour)
+		// 自分個人のメンション，またはロールへのメンションだった場合，返信
+		if mention == "me" {
+			if myChannelID == channelID {
+				sentence := fmt.Sprintf("形式 : 毎週(weekly)\nメンション対象 : 自分のみ\n課題 : %s\n%s曜日 : %s時\n", title, dayJ, hour)
 				return sentence
+			} else { // 他人個人のメンションは表示しない
+				return ""
 			}
+		} else {
+			sentence := fmt.Sprintf("形式 : 毎週(weekly)\nメンション対象 : %s\n課題 : %s\n%s曜日 : %s時\n", mentionName, title, dayJ, hour)
+			return sentence
 		}
-	} else if len(parts) == 7 { // 長さ7はonce
+	} else if len(parts) == 8 { // 長さ8はonce
 		// 各要素を変数に格納
 		channelID := parts[0]
 		title := parts[1]
@@ -89,16 +92,19 @@ func ViewEachRow(myChannelID string, data string) string {
 		day := parts[4]
 		hour := parts[5]
 		mention := parts[6]
+		mentionName := parts[7]
 
-		// 指定された年月日時が現在時刻と一致する場合にのみ処理を実行
-		if mention == "everyone" {
-			sentence := fmt.Sprintf("形式 : 一回のみ(once)\nメンション対象 : %s\n課題 : %s\n%s年%s月%s日%s時\n", mention, title, year, month, day, hour)
-			return sentence
-		} else if mention == "me" {
+		// 自分個人のメンション，またはロールへのメンションだった場合，返信
+		if mention == "me" {
 			if myChannelID == channelID {
-				sentence := fmt.Sprintf("形式 : 一回のみ(once)\nメンション対象 : %s\n課題 : %s\n%s年%s月%s日%s時\n", mention, title, year, month, day, hour)
+				sentence := fmt.Sprintf("形式 : 一回のみ(once)\nメンション対象 : %s\n課題 : %s\n%s年%s月%s日%s時\n", mentionName, title, year, month, day, hour)
 				return sentence
+			} else { // 他人個人のメンションは表示しない
+				return ""
 			}
+		} else {
+			sentence := fmt.Sprintf("形式 : 一回のみ(once)\nメンション対象 : %s\n課題 : %s\n%s年%s月%s日%s時\n", mentionName, title, year, month, day, hour)
+			return sentence
 		}
 	}
 	return ""
@@ -110,15 +116,34 @@ func MentionType(data string) string {
 	parts := strings.Split(data, ", ")
 
 	// データの長さで, weeklyか, onceかを判別
-	// 長さ5はweekly
-	if len(parts) == 5 {
+	// 長さ6はweekly
+	if len(parts) == 6 {
 		mention := parts[4]
 		return mention
-	} else if len(parts) == 7 { // 長さ7はonce
+	} else if len(parts) == 8 { // 長さ8はonce
 		mention := parts[6]
 		return mention
 	}
 	return ""
+}
+
+// ロールIDからロール名を取得する関数
+func GetRoleName(s *discordgo.Session, guildID, roleID string) (string, error) {
+	// サーバーからロール情報を取得
+	roles, err := s.GuildRoles(guildID)
+	if err != nil {
+		return "", err
+	}
+
+	// ロールIDに対応するロール名を探す
+	for _, role := range roles {
+		if role.ID == roleID {
+			return role.Name, nil
+		}
+	}
+
+	// ロールIDに対応するロールが見つからなかった場合
+	return "", fmt.Errorf("ロールID %s に対応するロールが見つかりませんでした", roleID)
 }
 
 func WeekEtoJ(day string) (string, error) {
@@ -202,28 +227,92 @@ func ReadFile(fileName string) ([]string, error) {
 	return lines, nil
 }
 
+// サーバーからロール情報を取得し，選択肢とする関数
+func GenerateMentionOptions(s *discordgo.Session) []*discordgo.ApplicationCommandOptionChoice {
+	// サーバーID
+	serverID := os.Getenv("guild_id")
+	var mentions []*discordgo.ApplicationCommandOptionChoice
 
-// 現在の時刻を取得し，そこから1年間を配列に格納
-func GenerateDateTimeOptions() []*discordgo.ApplicationCommandOptionChoice {
-	location, err := time.LoadLocation("Asia/Tokyo")
+	// サーバーからロール情報を取得
+	roles, err := s.GuildRoles(serverID)
 	if err != nil {
-		fmt.Println("Failed to load location:", err)
+		log.Fatal("Error getting guild roles: ", err)
+		return mentions
 	}
-	// 現在時刻を取得
-	start := time.Now().In(location)
-	end := start.AddDate(1, 0, 0) // 現在から1年後までの日時を生成
-	var options []*discordgo.ApplicationCommandOptionChoice
-	for current := start; current.Before(end); current = current.Add(time.Hour) {
-		// 日時の日本語名を取得
-		dayOfWeek := current.Weekday().String()
-		// 日時の日本語表記を作成
-		dateString := fmt.Sprintf("%d年%d月%d日 %s %02d時", current.Year(), int(current.Month()), current.Day(), dayOfWeek, current.Hour())
-		// 選択肢オプションに日時を追加
+
+	// ロール情報を選択肢に変換
+	for _, role := range roles {
 		choice := &discordgo.ApplicationCommandOptionChoice{
-			Name:  dateString,
-			Value: current.Format("2006-01-02T15:04:05"), // 日時を文字列にフォーマット
+			Name:  role.Name,
+			Value: role.ID,
 		}
-		options = append(options, choice)
+		mentions = append(mentions, choice)
+		if len(mentions) > 24 {
+			break
+		}
 	}
-	return options
+	choice := &discordgo.ApplicationCommandOptionChoice{
+		Name:  "自分のみ",
+		Value: "me",
+	}
+	mentions = append(mentions, choice)
+	return mentions
+}
+
+// サーバーからチャンネル情報を取得し，選択肢とする関数
+func GenerateChannelOptions(s *discordgo.Session) []*discordgo.ApplicationCommandOptionChoice {
+	// サーバーID
+	serverID := os.Getenv("guild_id")
+
+	// チャンネル一覧を取得
+	channels, err := s.GuildChannels(serverID)
+	if err != nil {
+		log.Fatal("Error getting guild channels: ", err)
+	}
+
+	// チャンネル一覧をコマンドの選択肢に変換
+	var channelChoices []*discordgo.ApplicationCommandOptionChoice
+	for _, channel := range channels {
+		// テキストチャンネルのみを選択肢とする場合
+		if channel.Type == discordgo.ChannelTypeGuildText {
+			choice := &discordgo.ApplicationCommandOptionChoice{
+				Name:  channel.Name,
+				Value: channel.ID,
+			}
+			channelChoices = append(channelChoices, choice)
+			if len(channelChoices) > 24 {
+				break
+			}
+		}
+	}
+
+	return channelChoices
+}
+
+// サーバーからカテゴリー情報を取得し，選択肢とする関数
+func GenerateCategoryOptions(s *discordgo.Session) []*discordgo.ApplicationCommandOptionChoice {
+	// サーバーID
+	serverID := os.Getenv("guild_id")
+	// カテゴリー一覧を取得
+	channels, err := s.GuildChannels(serverID)
+	if err != nil {
+		log.Fatal("Error getting guild channels: ", err)
+	}
+
+	// カテゴリー一覧をコマンドの選択肢に変換
+	var categoryChoices []*discordgo.ApplicationCommandOptionChoice
+	for _, channel := range channels {
+		if channel.Type == discordgo.ChannelTypeGuildCategory {
+			choice := &discordgo.ApplicationCommandOptionChoice{
+				Name:  channel.Name,
+				Value: channel.ID,
+			}
+			categoryChoices = append(categoryChoices, choice)
+			if len(categoryChoices) > 24 {
+				break
+			}
+		}
+	}
+
+	return categoryChoices
 }

@@ -2,21 +2,27 @@ package form
 
 import (
 	"formbot/cmd/form/subform"
-	"formbot/function"
-	"github.com/bwmarrin/discordgo"
 	"log"
+
+	"github.com/bwmarrin/discordgo"
 )
 
 type FormCmd struct {
+	mentions []*discordgo.ApplicationCommandOptionChoice
 }
 
-func NewFormCmd() FormCmd {
-	return FormCmd{}
+func NewFormCmd() *FormCmd {
+	return &FormCmd{}
 }
 
+// optionsを設定するメソッド
+func (f *FormCmd) SetOptions(mentions []*discordgo.ApplicationCommandOptionChoice) {
+    f.mentions = mentions
+}
 // コマンド作成&入力関数
-func (n FormCmd) Info() *discordgo.ApplicationCommand {
-	return &discordgo.ApplicationCommand{
+func (n *FormCmd) Info() *discordgo.ApplicationCommand {
+	// 選択肢を使用してコマンドを作成
+	command :=  &discordgo.ApplicationCommand{
 		Name:        "form",
 		Description: "このチャンネルの課題の締め切りを通知する設定を行います.",
 		Options: []*discordgo.ApplicationCommandOption{
@@ -33,8 +39,34 @@ func (n FormCmd) Info() *discordgo.ApplicationCommand {
 					{
 						Type:        discordgo.ApplicationCommandOptionInteger,
 						Name:        "hour",
-						Description: "通知する時間(時)",
+						Description: "通知する時間",
 						Required:    true,
+						Choices: []*discordgo.ApplicationCommandOptionChoice{
+							{Name: "0時", Value: 0},
+							{Name: "1時", Value: 1},
+							{Name: "2時", Value: 2},
+							{Name: "3時", Value: 3},
+							{Name: "4時", Value: 4},
+							{Name: "5時", Value: 5},
+							{Name: "6時", Value: 6},
+							{Name: "7時", Value: 7},
+							{Name: "8時", Value: 8},
+							{Name: "9時", Value: 9},
+							{Name: "10時", Value: 10},
+							{Name: "11時", Value: 11},
+							{Name: "12時", Value: 12},
+							{Name: "13時", Value: 13},
+							{Name: "14時", Value: 14},
+							{Name: "15時", Value: 15},
+							{Name: "16時", Value: 16},
+							{Name: "17時", Value: 17},
+							{Name: "18時", Value: 18},
+							{Name: "19時", Value: 19},
+							{Name: "20時", Value: 20},
+							{Name: "21時", Value: 21},
+							{Name: "22時", Value: 22},
+							{Name: "23時", Value: 23},
+						},
 					},
 					{
 						Type:        discordgo.ApplicationCommandOptionString,
@@ -56,10 +88,7 @@ func (n FormCmd) Info() *discordgo.ApplicationCommand {
 						Name:        "mention",
 						Description: "メンション範囲",
 						Required:    true,
-						Choices: []*discordgo.ApplicationCommandOptionChoice{
-							{Name: "自分のみ", Value: "me"},
-							{Name: "全員", Value: "everyone"},
-						},
+						Choices:     n.mentions,
 					},
 				},
 			},
@@ -69,11 +98,72 @@ func (n FormCmd) Info() *discordgo.ApplicationCommand {
 				Description: "課題期限通知時間の更新を行います.",
 				Options: []*discordgo.ApplicationCommandOption{
 					{
-						Type:        discordgo.ApplicationCommandOptionString,
-						Name:        "time",
-						Description: "通知をする年月日時",
+						Type:        discordgo.ApplicationCommandOptionInteger,
+						Name:        "year",
+						Description: "通知する年",
 						Required:    true,
-						Choices: subfunc.GenerateDateTimeOptions(),
+						Choices: []*discordgo.ApplicationCommandOptionChoice{
+							{Name: "2024年", Value: 2024},
+							{Name: "2025年", Value: 2025},
+						},
+					},
+					{
+						Type:        discordgo.ApplicationCommandOptionInteger,
+						Name:        "month",
+						Description: "通知する月",
+						Required:    true,
+						Choices: []*discordgo.ApplicationCommandOptionChoice{
+							{Name: "1月", Value: 1},
+							{Name: "2月", Value: 2},
+							{Name: "3月", Value: 3},
+							{Name: "4月", Value: 4},
+							{Name: "5月", Value: 5},
+							{Name: "6月", Value: 6},
+							{Name: "7月", Value: 7},
+							{Name: "8月", Value: 8},
+							{Name: "9月", Value: 9},
+							{Name: "10月", Value: 10},
+							{Name: "11月", Value: 11},
+							{Name: "12月", Value: 12},
+						},
+					},
+					{
+						Type:        discordgo.ApplicationCommandOptionInteger,
+						Name:        "day",
+						Description: "通知する日(1~31の間の整数を入力)",
+						Required:    true,
+					},
+					{
+						Type:        discordgo.ApplicationCommandOptionInteger,
+						Name:        "hour",
+						Description: "通知する時間",
+						Required:    true,
+						Choices: []*discordgo.ApplicationCommandOptionChoice{
+							{Name: "0時", Value: 0},
+							{Name: "1時", Value: 1},
+							{Name: "2時", Value: 2},
+							{Name: "3時", Value: 3},
+							{Name: "4時", Value: 4},
+							{Name: "5時", Value: 5},
+							{Name: "6時", Value: 6},
+							{Name: "7時", Value: 7},
+							{Name: "8時", Value: 8},
+							{Name: "9時", Value: 9},
+							{Name: "10時", Value: 10},
+							{Name: "11時", Value: 11},
+							{Name: "12時", Value: 12},
+							{Name: "13時", Value: 13},
+							{Name: "14時", Value: 14},
+							{Name: "15時", Value: 15},
+							{Name: "16時", Value: 16},
+							{Name: "17時", Value: 17},
+							{Name: "18時", Value: 18},
+							{Name: "19時", Value: 19},
+							{Name: "20時", Value: 20},
+							{Name: "21時", Value: 21},
+							{Name: "22時", Value: 22},
+							{Name: "23時", Value: 23},
+						},
 					},
 					{
 						Type:        discordgo.ApplicationCommandOptionString,
@@ -86,10 +176,7 @@ func (n FormCmd) Info() *discordgo.ApplicationCommand {
 						Name:        "mention",
 						Description: "メンション範囲",
 						Required:    true,
-						Choices: []*discordgo.ApplicationCommandOptionChoice{
-							{Name: "自分のみ", Value: "me"},
-							{Name: "全員", Value: "everyone"},
-						},
+						Choices:     n.mentions,
 					},
 				},
 			},
@@ -108,6 +195,7 @@ func (n FormCmd) Info() *discordgo.ApplicationCommand {
 			},
 		},
 	}
+	return command
 }
 
 func (n FormCmd) Handle(

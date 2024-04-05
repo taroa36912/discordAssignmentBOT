@@ -5,7 +5,6 @@ import (
 	"formbot/function"
 	"log"
 	"os"
-	"time"
 	"strconv"
 
 	"github.com/bwmarrin/discordgo"
@@ -30,11 +29,72 @@ func (n ZemiCmd) Info() *discordgo.ApplicationCommand {
 		Description: "ゼミの日程が変更した際，こちらで再設定します. Botが生成したメッセージは削除してください.",
 		Options: []*discordgo.ApplicationCommandOption{
 			{
-				Type:        discordgo.ApplicationCommandOptionString,
-				Name:        "time",
-				Description: "ゼミ開始の年月日時",
+				Type:        discordgo.ApplicationCommandOptionInteger,
+				Name:        "year",
+				Description: "通知する年",
 				Required:    true,
-				Choices:     subfunc.GenerateDateTimeOptions(),
+				Choices: []*discordgo.ApplicationCommandOptionChoice{
+					{Name: "2024年", Value: 2024},
+					{Name: "2025年", Value: 2025},
+				},
+			},
+			{
+				Type:        discordgo.ApplicationCommandOptionInteger,
+				Name:        "month",
+				Description: "通知する月",
+				Required:    true,
+				Choices: []*discordgo.ApplicationCommandOptionChoice{
+					{Name: "1月", Value: 1},
+					{Name: "2月", Value: 2},
+					{Name: "3月", Value: 3},
+					{Name: "4月", Value: 4},
+					{Name: "5月", Value: 5},
+					{Name: "6月", Value: 6},
+					{Name: "7月", Value: 7},
+					{Name: "8月", Value: 8},
+					{Name: "9月", Value: 9},
+					{Name: "10月", Value: 10},
+					{Name: "11月", Value: 11},
+					{Name: "12月", Value: 12},
+				},
+			},
+			{
+				Type:        discordgo.ApplicationCommandOptionInteger,
+				Name:        "day",
+				Description: "通知する日(1~31の間の整数を入力)",
+				Required:    true,
+			},
+			{
+				Type:        discordgo.ApplicationCommandOptionInteger,
+				Name:        "hour",
+				Description: "通知する時間",
+				Required:    true,
+				Choices: []*discordgo.ApplicationCommandOptionChoice{
+					{Name: "0時", Value: 0},
+					{Name: "1時", Value: 1},
+					{Name: "2時", Value: 2},
+					{Name: "3時", Value: 3},
+					{Name: "4時", Value: 4},
+					{Name: "5時", Value: 5},
+					{Name: "6時", Value: 6},
+					{Name: "7時", Value: 7},
+					{Name: "8時", Value: 8},
+					{Name: "9時", Value: 9},
+					{Name: "10時", Value: 10},
+					{Name: "11時", Value: 11},
+					{Name: "12時", Value: 12},
+					{Name: "13時", Value: 13},
+					{Name: "14時", Value: 14},
+					{Name: "15時", Value: 15},
+					{Name: "16時", Value: 16},
+					{Name: "17時", Value: 17},
+					{Name: "18時", Value: 18},
+					{Name: "19時", Value: 19},
+					{Name: "20時", Value: 20},
+					{Name: "21時", Value: 21},
+					{Name: "22時", Value: 22},
+					{Name: "23時", Value: 23},
+				},
 			},
 			{
 				Type:        discordgo.ApplicationCommandOptionInteger,
@@ -58,7 +118,7 @@ func (n ZemiCmd) Handle(
 	options := i.ApplicationCommandData().Options
 
 	// 回答が正しく得られなかった場合，終了
-	if len(options) != 2 {
+	if len(options) != 5 {
 		log.Printf("invalid options: %#v", options)
 		return
 	}
@@ -74,8 +134,11 @@ func (n ZemiCmd) Handle(
 		return
 	}
 
-	dataString := options[0].StringValue()
-	minute := int(options[1].IntValue())
+	year := options[0].IntValue()
+	month := options[1].IntValue()
+	day := options[2].IntValue()
+	hour := options[3].IntValue()
+	minute := int(options[4].IntValue())
 	minuteStr := strconv.Itoa(minute)
 	if minuteStr == ""{
 		minute = 0
@@ -92,42 +155,14 @@ func (n ZemiCmd) Handle(
 		return
 	}
 
-	// time.Parse を使って時間を解析し、変数に格納
-	parsedTime, err := time.Parse("2006-01-02T15:04:05", dataString)
-	if err != nil {
-		fmt.Println("Failed to parse time:", err)
-		return
-	}
-
-	// 年、月、日、時を取得して変数に格納
-	year := parsedTime.Year()
-	month := parsedTime.Month()
-	day := parsedTime.Day()
-	hour := parsedTime.Hour()
-
-	// 指定された形式の文字列をパース
-    t, err := time.Parse("2006-01-02T15:04:05", dataString)
-    if err != nil {
-        fmt.Println("Failed to parse time:", err)
-        return
-    }
-    
-    // 曜日を取得
-    weekday := t.Weekday().String()
-	dayJ, err := subfunc.WeekEtoJ(weekday)
-	if err != nil {
-		log.Printf("failed to convert day to Japanese: %v", err)
-		return
-	}
-
 	// ゼミ出席メッセージの追加
-	sentence := fmt.Sprintf("<@%s>```%d年%d月%d日%s曜日%d時%d分\n自主ゼミの出欠を取ります.\nリアクションをしてください.```", zemiRoleID, year, month, day, dayJ, hour, minute)
+	sentence := fmt.Sprintf("<@%s>```%d年%d月%d日%d時%d分\n自主ゼミの出欠を取ります.\nリアクションをしてください.```", zemiRoleID, year, month, day, hour, minute)
 	msg, err := s.ChannelMessageSend(zemiChannelID, sentence)
 	if err != nil {
 		log.Println("Error sending message : ", err)
 	}
 
-	subfunc.WritetoFile("zemiMessage.txt", fmt.Sprintf("%s, %d, %d, %d, %s, %d, %d", msg.ID, year, month, day, weekday, hour, minute))
+	subfunc.WritetoFile("zemiMessage.txt", fmt.Sprintf("%s, %d, %d, %d, %d, %d", msg.ID, year, month, day, hour, minute))
 
 	// 通知追加中の表示を変更する
 	finishFollowUpStr := "zemiコマンドが正しく発動されました."

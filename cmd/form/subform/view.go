@@ -34,7 +34,7 @@ func HandleViewCommand(
 	// 自分のみのチャンネルに，通知一覧を送信する
 	remindData, err := subfunc.ReadFile("form.txt")
 	if err != nil {
-		log.Printf("failed to get data.txt: %v", err)
+		log.Printf("failed to get form.txt: %v", err)
 		return
 	}
 	// 通知番号の表示

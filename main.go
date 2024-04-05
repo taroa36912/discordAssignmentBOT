@@ -5,8 +5,10 @@ import (
 	"formbot/cmd"
 	"formbot/cmd/delete"
 	"formbot/cmd/form"
+	"formbot/cmd/move"
 	"formbot/cmd/zemi"
 	"formbot/event"
+	"formbot/function"
 	"log"
 	"os"
 	"os/signal"
@@ -19,6 +21,12 @@ import (
 const (
 	EnvDiscordToken = "discord_token"
 	EnvClientId     = "client_id"
+)
+
+var (
+	mentions []*discordgo.ApplicationCommandOptionChoice
+	channelChoices []*discordgo.ApplicationCommandOptionChoice
+	categoryChoices []*discordgo.ApplicationCommandOptionChoice
 )
 
 func main() {
@@ -40,6 +48,10 @@ func main() {
 		fmt.Println(err)
 	}
 
+	mentions = subfunc.GenerateMentionOptions(discord)
+	channelChoices = subfunc.GenerateChannelOptions(discord)
+	categoryChoices = subfunc.GenerateCategoryOptions(discord)
+
 	//イベントハンドラを追加
 	discord.AddHandler(event.CheckReminder)
 	discord.AddHandler(event.CreateZemiMessage)
@@ -51,11 +63,15 @@ func main() {
 
 	cmds := cmd.NewExec()
 	formCmd := form.NewFormCmd()
+	formCmd.SetOptions(mentions)
 	cmds.Add(formCmd)
 	deleteCmd := delete.NewDeleteCmd()
 	cmds.Add(deleteCmd)
 	zemiCmd := zemi.NewZemiCmd()
 	cmds.Add(zemiCmd)
+	moveCmd := move.NewMoveCmd()
+	moveCmd.SetOptions(channelChoices, categoryChoices)
+	cmds.Add(moveCmd)
 
 	cmdHandler := cmds.Activate(discord)
 	defer cmdHandler.Deactivate()
@@ -115,7 +131,6 @@ func ExecuteAt20(f func(s *discordgo.Session, e *discordgo.Ready), s *discordgo.
 	}()
 }
 
-
 // ExecuteAt8は、指定した関数を毎日8時に実行します。
 func ExecuteAt8(f func(s *discordgo.Session, e *discordgo.Ready), s *discordgo.Session) {
 	// 現在の時刻を取得
@@ -144,7 +159,6 @@ func ExecuteAt8(f func(s *discordgo.Session, e *discordgo.Ready), s *discordgo.S
 		ExecuteAt8(f, s)
 	}()
 }
-
 
 // ExecuteAt0は、指定した関数を毎時0分に実行します。
 func ExecuteAt0(f func(s *discordgo.Session, e *discordgo.Ready), s *discordgo.Session) {
