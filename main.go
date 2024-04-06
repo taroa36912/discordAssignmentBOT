@@ -56,6 +56,7 @@ func main() {
 	discord.AddHandler(event.CheckReminder)
 	discord.AddHandler(event.CreateZemiMessage)
 	discord.AddHandler(event.CheckZemiReaction)
+	discord.AddHandler(event.ZemiTimeNotification)
 	err = discord.Open()
 	if err != nil {
 		fmt.Println(err)
@@ -82,6 +83,8 @@ func main() {
 	ExecuteAt0(event.CheckReminder, discord)
 	// 毎日8時に関数を実行するためのタイマーを作成
 	ExecuteAt8(event.CheckZemiReaction, discord)
+	// 毎時0分に関数を実行するためのタイマーを作成
+	ExecuteAt0(event.ZemiTimeNotification, discord)
 
 	//ここから終了コマンド
 	defer discord.Close()

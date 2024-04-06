@@ -48,15 +48,12 @@ func CreateZemiMessage(s *discordgo.Session, e *discordgo.Ready) {
 
 // 毎朝8時に呼び，その日に開催するゼミのリアクションをチェックする関数
 func CheckZemiReaction(s *discordgo.Session, e *discordgo.Ready) {
-	zemiServerID := os.Getenv("guild_id")
 	zemiChannelID := os.Getenv("zemi_channel_id")
 	zemiRoleID := os.Getenv("zemi_role_id")
 	zemiAttendID := os.Getenv("emoji_attend_id")
 	zemiAbsentID := os.Getenv("emoji_absent_id")
 	// attendanceEmoji := ":syusseki:"
 	// absentEmoji := ":kesseki:"
-	// nakairiEmoji := ":totyusanka:"
-	// nakanukeEmoji := ":totyunuke:"
 	// 定期的な絵文字チェックの開始
 	// zemi出席のメッセージIDそれぞれに対し処理
 	zemiMessage, err := subfunc.ReadFile("zemiMessage.txt")
@@ -123,8 +120,6 @@ func CheckZemiReaction(s *discordgo.Session, e *discordgo.Ready) {
 				// 返信先のメッセージの参照情報
 				reference := &discordgo.MessageReference{
 					MessageID: messageID,
-					ChannelID: zemiChannelID,
-					GuildID: zemiServerID,
 				}
 				sentence := fmt.Sprintf("<@&%s>```%s年%s月%s日%s曜日%s時%s分\n自主ゼミ当日です.\n```参加者 : %s\n欠席者 : %s", zemiRoleID, year, month, day, dayJ, hour, minute, usersMentionAttend, usersMentionAbsence)
 				// SendReply関数を呼び出してメッセージを送信
