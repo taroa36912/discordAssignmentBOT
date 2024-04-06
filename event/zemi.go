@@ -10,21 +10,14 @@ import (
 	"time"
 )
 
-var (
-	zemiServerID = os.Getenv("guild_id")
-	zemiChannelID = os.Getenv("zemi_channel_id")
-	zemiRoleID = os.Getenv("zemi_role_id")
-	zemiAttendID = os.Getenv("emoji_attend_id")
-	zemiAbsentID = os.Getenv("emoji_absent_id")
-	zemiWeek = "Thursday"
-	zemiHour = 10
-	zemiMinute = 0
-)
-
-
 
 // 毎日20時にゼミの出席メッセージを作る関数
 func CreateZemiMessage(s *discordgo.Session, e *discordgo.Ready) {
+	zemiChannelID := os.Getenv("zemi_channel_id")
+	zemiRoleID := os.Getenv("zemi_role_id")
+	zemiWeek := "Tuesday"
+	zemiHour := 10
+	zemiMinute := 0
 	// 日本標準時の場所情報を取得
 	location, err := time.LoadLocation("Asia/Tokyo")
 	if err != nil {
@@ -55,6 +48,11 @@ func CreateZemiMessage(s *discordgo.Session, e *discordgo.Ready) {
 
 // 毎朝8時に呼び，その日に開催するゼミのリアクションをチェックする関数
 func CheckZemiReaction(s *discordgo.Session, e *discordgo.Ready) {
+	zemiServerID := os.Getenv("guild_id")
+	zemiChannelID := os.Getenv("zemi_channel_id")
+	zemiRoleID := os.Getenv("zemi_role_id")
+	zemiAttendID := os.Getenv("emoji_attend_id")
+	zemiAbsentID := os.Getenv("emoji_absent_id")
 	// attendanceEmoji := ":syusseki:"
 	// absentEmoji := ":kesseki:"
 	// nakairiEmoji := ":totyusanka:"
@@ -152,6 +150,8 @@ func usersMention(users []*discordgo.User)(string){
 
 // 毎時0分に呼び出し，その日に開始されるゼミの時間に一致するものを通知する関数
 func ZemiTimeNotification(s *discordgo.Session, e *discordgo.Ready) {
+	zemiChannelID := os.Getenv("zemi_channel_id")
+	zemiRoleID := os.Getenv("zemi_role_id")
 	// zemi出席のメッセージIDそれぞれに対し処理
 	zemiMessage, err := subfunc.ReadFile("zemiMessage.txt")
 	if err != nil {

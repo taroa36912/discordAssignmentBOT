@@ -17,11 +17,6 @@ func NewZemiCmd() ZemiCmd {
 	return ZemiCmd{}
 }
 
-var (
-	zemiChannelID = os.Getenv("zemi_channel_id")
-	zemiRoleID    = os.Getenv("zemi_role_id")
-)
-
 // コマンド作成&入力関数
 func (n ZemiCmd) Info() *discordgo.ApplicationCommand {
 	return &discordgo.ApplicationCommand{
@@ -118,21 +113,13 @@ func (n ZemiCmd) Handle(
 	options := i.ApplicationCommandData().Options
 
 	// 回答が正しく得られなかった場合，終了
-	if len(options) != 4 && len(options) != 5 {
+	if len(options) != 5 {
 		log.Printf("invalid options: %#v", options)
 		return
 	}
 
-	// 処理を行っている間表示されるメッセージ
-	followUp := discordgo.WebhookParams{
-		Content: "ゼミ出席メッセージ追加中...",
-		Flags:   discordgo.MessageFlagsEphemeral,
-	}
-	followUpMsg, err := s.FollowupMessageCreate(i.Interaction, true, &followUp)
-	if err != nil {
-		log.Printf("failed to send follow-up message, err: %v", err)
-		return
-	}
+	zemiChannelID := os.Getenv("zemi_channel_id")
+	zemiRoleID    := os.Getenv("zemi_role_id")
 
 	year := options[0].IntValue()
 	month := options[1].IntValue()
@@ -146,37 +133,25 @@ func (n ZemiCmd) Handle(
 	}
 	minute := int(options[4].IntValue())
 	if minute < 0 || 59 < minute {
-		// 通知追加中の表示を変更する
-		finishFollowUpStr := "分は0~59の範囲で入力してください."
-		finishFollowUp := discordgo.WebhookEdit{
-			Content: &finishFollowUpStr,
-		}
-		if _, err := s.FollowupMessageEdit(i.Interaction, followUpMsg.ID, &finishFollowUp); err != nil {
-			log.Printf("failed to edit follow-up message, err: %v", err)
-			return
-		}
+		// エラーメッセージを送信します
+		errMsg := "分は0~59の範囲で入力してください."
+		sendError(s, i, errMsg)
 		return
 	}
 
 	// ゼミ出席メッセージの追加
-	sentence := fmt.Sprintf("<@%s>```%d年%d月%d日%s曜日%d時%d分\n自主ゼミの出欠を取ります.\nリアクションをしてください.```", zemiRoleID, year, month, day, dayJ, hour, minute)
-	msg, err := s.ChannelMessageSend(zemiChannelID, sentence)
+	sentence := fmt.Sprintf("<@&%s>```%d年%d月%d日%s曜日%d時%d分\n自主ゼミの出欠を取ります.\nリアクションをしてください.```", zemiRoleID, year, month, day, dayJ, hour, minute)
+	mes, err := s.ChannelMessageSend(zemiChannelID, sentence)
 	if err != nil {
-		log.Println("Error sending message : ", err)
-	}
-
-	subfunc.WritetoFile("zemiMessage.txt", fmt.Sprintf("%s, %d, %d, %d, %s, %d, %d", msg.ID, year, month, day, weekday, hour, minute))
-
-	// 通知追加中の表示を変更する
-	finishFollowUpStr := "zemiコマンドが正しく発動されました."
-	finishFollowUp := discordgo.WebhookEdit{
-		Content: &finishFollowUpStr,
-	}
-	if _, err := s.FollowupMessageEdit(i.Interaction, followUpMsg.ID, &finishFollowUp); err != nil {
-		log.Printf("failed to edit follow-up message, err: %v", err)
+		log.Println("Error sending message : ", err, zemiChannelID, sentence)
 		return
 	}
 
+	subfunc.WritetoFile("zemiMessage.txt", fmt.Sprintf("%s, %d, %d, %d, %s, %d, %d", mes.ID, year,  month, day, weekday, hour, minute))
+
+	// 正常なリクエストの返信
+	successMsg := "zemiコマンドが正しく発動されました."
+	sendEphemeralResponse(s, i, successMsg)
 }
 
 func getWeekday(year, month, day int) string {
@@ -186,4 +161,34 @@ func getWeekday(year, month, day int) string {
 	weekday := date.Weekday()
 	// 曜日を文字列に変換して返す
 	return weekday.String()
+}
+
+// エラーメッセージを送信するヘルパー関数
+func sendError(s *discordgo.Session, i *discordgo.InteractionCreate, errMsg string) {
+	response := &discordgo.InteractionResponse{
+		Type: discordgo.InteractionResponseChannelMessageWithSource,
+		Data: &discordgo.InteractionResponseData{
+			Content: errMsg,
+			Flags:   discordgo.MessageFlagsEphemeral,
+		},
+	}
+	err := s.InteractionRespond(i.Interaction, response)
+	if err != nil {
+		log.Printf("failed to send error message: %v", err)
+	}
+}
+
+// 正常なリクエストの返信を送信するヘルパー関数
+func sendEphemeralResponse(s *discordgo.Session, i *discordgo.InteractionCreate, msg string) {
+	response := &discordgo.InteractionResponse{
+		Type: discordgo.InteractionResponseChannelMessageWithSource,
+		Data: &discordgo.InteractionResponseData{
+			Content: msg,
+			Flags:   discordgo.MessageFlagsEphemeral,
+		},
+	}
+	err := s.InteractionRespond(i.Interaction, response)
+	if err != nil {
+		log.Printf("failed to send response message: %v", err)
+	}
 }
