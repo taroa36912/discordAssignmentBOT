@@ -54,6 +54,8 @@ func CheckZemiReaction(s *discordgo.Session, e *discordgo.Ready) {
 	emojiAttend := fmt.Sprintf(":shusseki:%s", zemiAttendID)
 	zemiAbsentID := os.Getenv("emoji_absent_id")
 	emojiAbsent := fmt.Sprintf(":kesseki:%s", zemiAbsentID)
+	zemiPresentationID := os.Getenv("emoji_presentation_id")
+	emojiPresentation := fmt.Sprintf(":happyousha:%s", zemiPresentationID)
 	// attendanceEmoji := ":shusseki:"
 	// absentEmoji := ":kesseki:"
 	// 定期的な絵文字チェックの開始
@@ -118,17 +120,24 @@ func CheckZemiReaction(s *discordgo.Session, e *discordgo.Ready) {
 				}
 				usersMentionAbsence := usersMention(usersAbsent)
 
+				// 発表者リアクションをしたユーザーを取得
+				usersPresentation, err := s.MessageReactions(zemiChannelID, messageID, emojiPresentation, 100, "", "")
+				if err != nil {
+					fmt.Println("Error getting reactions: ", err)
+					return
+				}
+				usersMentionPresentation := usersMention(usersPresentation)
+
 				// // リアクションをしていないユーザーを取得
 				// usersRoleZemi := usersHaveZemiRole(s, zemiRoleID)
 				// usersNotReaction := usersNotReactions(usersAttend, usersAbsent, usersRoleZemi)
 				// usersMentionNone := usersMention(usersNotReaction)
 
-
 				// 返信先のメッセージの参照情報
 				reference := &discordgo.MessageReference{
 					MessageID: messageID,
 				}
-				sentence := fmt.Sprintf("<@&%s>```%s年%s月%s日%s曜日%s時%s分\n自主ゼミ当日です.\n以下に名前がない人はペナルティが付きます.```参加者 : %s\n欠席者 : %s\n", zemiRoleID, year, month, day, dayJ, hour, minute, usersMentionAttend, usersMentionAbsence)
+				sentence := fmt.Sprintf("<@&%s>```%s年%s月%s日%s曜日%s時%s分\n自主ゼミ当日です.\n以下に名前がない人はペナルティが付きます.```参加者 : %s\n欠席者 : %s\n発表者 : %s", zemiRoleID, year, month, day, dayJ, hour, minute, usersMentionAttend, usersMentionAbsence, usersMentionPresentation)
 				// SendReply関数を呼び出してメッセージを送信
 				_, err = s.ChannelMessageSendReply(zemiChannelID, sentence, reference)
 				if err != nil {
