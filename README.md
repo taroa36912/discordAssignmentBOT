@@ -1,2 +1,2 @@
 # discordAssignmentBOT
-discord BOT for notifying the deadline of assignments
+discord BOTで，設定した期限にメッセージを通知，設定したゼミの出席を取る機能など
