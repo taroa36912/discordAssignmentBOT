@@ -54,7 +54,7 @@ func main() {
 
 	//イベントハンドラを追加
 	discord.AddHandler(event.CheckReminder)
-	discord.AddHandler(event.CreateZemiMessage)
+	//discord.AddHandler(event.CreateZemiMessage)
 	discord.AddHandler(event.CheckZemiReaction)
 	discord.AddHandler(event.ZemiTimeNotification)
 	err = discord.Open()
@@ -78,7 +78,7 @@ func main() {
 	defer cmdHandler.Deactivate()
 
 	// 毎日20時に関数を実行するためのタイマーを作成
-	ExecuteAt20(event.CreateZemiMessage, discord)
+	//ExecuteAt20(event.CreateZemiMessage, discord)
 	// 毎時0分に関数を実行するためのタイマーを作成
 	ExecuteAt0(event.CheckReminder, discord)
 	// 毎日8時に関数を実行するためのタイマーを作成

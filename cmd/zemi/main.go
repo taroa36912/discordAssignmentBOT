@@ -97,6 +97,12 @@ func (n ZemiCmd) Info() *discordgo.ApplicationCommand {
 				Description: "ゼミ開始の分",
 				Required:    true,
 			},
+			{
+				Type:        discordgo.ApplicationCommandOptionString,
+				Name:        "message",
+				Description: "ゼミ内容を簡潔に書いてください",
+				Required:    true,
+			},
 		},
 	}
 }
@@ -113,7 +119,7 @@ func (n ZemiCmd) Handle(
 	options := i.ApplicationCommandData().Options
 
 	// 回答が正しく得られなかった場合，終了
-	if len(options) != 5 {
+	if len(options) != 6 {
 		log.Printf("invalid options: %#v", options)
 		return
 	}
@@ -139,15 +145,17 @@ func (n ZemiCmd) Handle(
 		return
 	}
 
+	message := options[5].StringValue()
+
 	// ゼミ出席メッセージの追加
-	sentence := fmt.Sprintf("<@&%s>```%d年%d月%d日%s曜日%d時%d分\n自主ゼミの出欠を取ります.\nリアクションをしてください.```", zemiRoleID, year, month, day, dayJ, hour, minute)
+	sentence := fmt.Sprintf("<@&%s>```自主ゼミ開催通知\n日時 : %d年%d月%d日%s曜日%d時%d分\n内容 : %s\n```", zemiRoleID, year, month, day, dayJ, hour, minute, message)
 	mes, err := s.ChannelMessageSend(zemiChannelID, sentence)
 	if err != nil {
 		log.Println("Error sending message : ", err, zemiChannelID, sentence)
 		return
 	}
 
-	subfunc.WritetoFile("zemiMessage.txt", fmt.Sprintf("%s, %d, %d, %d, %s, %d, %d", mes.ID, year,  month, day, weekday, hour, minute))
+	subfunc.WritetoFile("zemiMessage.txt", fmt.Sprintf("%s, %d, %d, %d, %s, %d, %d, %s", mes.ID, year,  month, day, weekday, hour, minute, message))
 
 	// 正常なリクエストの返信
 	successMsg := "zemiコマンドが正しく発動されました."
