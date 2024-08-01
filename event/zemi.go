@@ -74,7 +74,7 @@ func CheckZemiReaction(s *discordgo.Session, e *discordgo.Ready) {
 
 	for _, message := range zemiMessage {
 		parts := strings.Split(message, ", ")
-		if len(parts) == 8 {
+		if len(parts) == 9 {
 			messageID := parts[0]
 			year := parts[1]
 			month := parts[2]
@@ -82,7 +82,8 @@ func CheckZemiReaction(s *discordgo.Session, e *discordgo.Ready) {
 			weekday := parts[4]
 			hour := parts[5]
 			minute := parts[6]
-			message := parts[7]
+			messageDetail := parts[7]
+			place := parts[8]
 			dayJ, err := subfunc.WeekEtoJ(weekday)
 			if err != nil {
 				log.Printf("failed to convert day to Japanese: %v", err)
@@ -121,7 +122,7 @@ func CheckZemiReaction(s *discordgo.Session, e *discordgo.Ready) {
 				reference := &discordgo.MessageReference{
 					MessageID: messageID,
 				}
-				sentence := fmt.Sprintf("<@&%s>```自主ゼミ当日\n日時 : %s年%s月%s日%s曜日%s時%s分\n内容 : %s\n```参加者 : %s\n欠席者 : %s", zemiRoleID, year, month, day, dayJ, hour, minute, message, usersMentionAttend, usersMentionAbsence)
+				sentence := fmt.Sprintf("<@&%s>```自主ゼミ当日\n日時 : %s年%s月%s日%s曜日%s時%s分\n内容 : %s, 場所 : %s\n```参加者 : %s\n欠席者 : %s", zemiRoleID, year, month, day, dayJ, hour, minute, messageDetail, place, usersMentionAttend, usersMentionAbsence)
 				// SendReply関数を呼び出してメッセージを送信
 				_, err = s.ChannelMessageSendReply(zemiChannelID, sentence, reference)
 				if err != nil {
@@ -219,7 +220,7 @@ func ZemiTimeNotification(s *discordgo.Session, e *discordgo.Ready) {
 
 	for _, message := range zemiMessage {
 		parts := strings.Split(message, ", ")
-		if len(parts) == 7 {
+		if len(parts) == 9 {
 			messageID := parts[0]
 			year := parts[1]
 			month := parts[2]
@@ -227,6 +228,8 @@ func ZemiTimeNotification(s *discordgo.Session, e *discordgo.Ready) {
 			weekday := parts[4]
 			hour := parts[5]
 			minute := parts[6]
+			messageDetail := parts[7]
+			place := parts[8]
 			currentYear := current.Year()
 			currentMonth := int(current.Month())
 			currentday := current.Day()
@@ -250,7 +253,7 @@ func ZemiTimeNotification(s *discordgo.Session, e *discordgo.Ready) {
 				reference := &discordgo.MessageReference{
 					MessageID: messageID,
 				}
-				sentence := fmt.Sprintf("<@&%s>```%s年%s月%s日%s曜日%s時%s分\n自主ゼミが開始されます.```", zemiRoleID, year, month, day, dayJ, hour, minute)
+				sentence := fmt.Sprintf("<@&%s>```%s年%s月%s日%s曜日%s時%s分\n内容 : %s, 場所 : %s\n自主ゼミが開始されます.```", zemiRoleID, year, month, day, dayJ, hour, minute, messageDetail, place)
 				// SendReply関数を呼び出してメッセージを送信
 				_, err = s.ChannelMessageSendReply(zemiChannelID, sentence, reference)
 				if err != nil {

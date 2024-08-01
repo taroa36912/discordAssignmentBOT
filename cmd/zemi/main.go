@@ -103,6 +103,12 @@ func (n ZemiCmd) Info() *discordgo.ApplicationCommand {
 				Description: "ゼミ内容を簡潔に書いてください",
 				Required:    true,
 			},
+			{
+				Type:        discordgo.ApplicationCommandOptionString,
+				Name:        "place",
+				Description: "ゼミの開催場所を書いてください",
+				Required:    true,
+			},
 		},
 	}
 }
@@ -119,13 +125,17 @@ func (n ZemiCmd) Handle(
 	options := i.ApplicationCommandData().Options
 
 	// 回答が正しく得られなかった場合，終了
-	if len(options) != 6 {
+	if len(options) != 7 {
 		log.Printf("invalid options: %#v", options)
 		return
 	}
 
 	zemiChannelID := os.Getenv("zemi_channel_id")
 	zemiRoleID    := os.Getenv("zemi_role_id")
+	zemiAttendID := os.Getenv("emoji_attend_id")
+	emojiAttend := fmt.Sprintf(":shusseki:%s", zemiAttendID)
+	zemiAbsentID := os.Getenv("emoji_absent_id")
+	emojiAbsent := fmt.Sprintf(":kesseki:%s", zemiAbsentID)
 
 	year := options[0].IntValue()
 	month := options[1].IntValue()
@@ -147,15 +157,29 @@ func (n ZemiCmd) Handle(
 
 	message := options[5].StringValue()
 
+	place := options[6].StringValue()
+
 	// ゼミ出席メッセージの追加
-	sentence := fmt.Sprintf("<@&%s>```自主ゼミ開催通知\n日時 : %d年%d月%d日%s曜日%d時%d分\n内容 : %s\n```", zemiRoleID, year, month, day, dayJ, hour, minute, message)
+	sentence := fmt.Sprintf("<@&%s>```自主ゼミ開催通知\n日時 : %d年%d月%d日%s曜日%d時%d分\n内容 : %s, 場所 : %s\n```", zemiRoleID, year, month, day, dayJ, hour, minute, message, place)
 	mes, err := s.ChannelMessageSend(zemiChannelID, sentence)
 	if err != nil {
 		log.Println("Error sending message : ", err, zemiChannelID, sentence)
 		return
 	}
 
-	subfunc.WritetoFile("zemiMessage.txt", fmt.Sprintf("%s, %d, %d, %d, %s, %d, %d, %s", mes.ID, year,  month, day, weekday, hour, minute, message))
+	err = s.MessageReactionAdd(zemiChannelID, mes.ID, emojiAbsent)
+	if err != nil {
+		log.Println("Error adding reaction,", err)
+		return
+	}
+
+	err = s.MessageReactionAdd(zemiChannelID, mes.ID, emojiAttend)
+	if err != nil {
+		log.Println("Error adding reaction,", err)
+		return
+	}
+
+	subfunc.WritetoFile("zemiMessage.txt", fmt.Sprintf("%s, %d, %d, %d, %s, %d, %d, %s, %s", mes.ID, year,  month, day, weekday, hour, minute, message, place))
 
 	// 正常なリクエストの返信
 	successMsg := "zemiコマンドが正しく発動されました."
